@@ -29,7 +29,7 @@ class _NewReleasesState extends State<NewReleases> {
 
     return SizedBox(
       width: widthSize,
-      height: 320,
+      height: 350,
       child: Padding(
         padding: const EdgeInsets.only(top: 20, left: 10, right: 10),
         child: Column(
@@ -108,10 +108,19 @@ class _NewReleasesState extends State<NewReleases> {
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(10),
                                   child: Image.network(
-                                    "https://image.tmdb.org/t/p/w500${movie.posterPath}",
+                                    movie.posterPath,
                                     height: 180,
                                     width: 150,
                                     fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => Container(
+                                      height: 180,
+                                      width: 150,
+                                      color:
+                                          const Color.fromARGB(255, 40, 40, 40),
+                                      alignment: Alignment.center,
+                                      child: const Icon(Icons.local_movies,
+                                          color: Colors.white54),
+                                    ),
                                   ),
                                 ),
                               ),

@@ -77,7 +77,7 @@ class _TopCarouselSectionState extends State<TopCarouselSection> {
             child: FlutterCarousel(
               items: trendingMovies.map((movie) {
                 final posterUrl = movie.posterPath.isNotEmpty
-                    ? 'https://image.tmdb.org/t/p/w500${movie.posterPath}'
+                    ? movie.posterPath
                     : 'https://via.placeholder.com/500x750?text=No+Image';
 
                 return Padding(

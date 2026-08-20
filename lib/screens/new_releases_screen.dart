@@ -83,7 +83,7 @@ class _NewReleasesScreenState extends State<NewReleasesScreen> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(10),
                         child: Image.network(
-                          "https://image.tmdb.org/t/p/w500${movie.posterPath}",
+                          movie.posterPath,
                           fit: BoxFit.cover,
                           width: double.infinity,
                         ),

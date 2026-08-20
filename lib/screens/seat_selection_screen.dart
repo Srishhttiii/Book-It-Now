@@ -1,7 +1,8 @@
 // seat_selection_screen.dart
 // lib/services/booking_service.dart
 
-import 'package:book_my_seat/book_my_seat.dart';
+import 'package:book_my_seat/book_my_seat.dart' hide SeatLayoutWidget;
+import '../components/seatselections/seat_layout_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../components/seatselections/seat_preview_modal.dart';
@@ -141,6 +142,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
       ),
     );
   }
+
 // --- HANDLE BOOKING PROCESS ---
   Future<void> _handleBooking() async {
     if (selectedSeats.isEmpty) return;
@@ -186,7 +188,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
         );
       } else {
         // This case handles when success is false but no exception was thrown
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Booking failed. Please try again.'),
@@ -469,9 +471,12 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
 
                 const SizedBox(height: 20),
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 80),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  padding:
+                      const EdgeInsets.only(left: 12, right: 12, bottom: 80),
+                  child: Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 18,
+                    runSpacing: 12,
                     children: [
                       legendItem('Disabled',
                           'assets/images/svg_disabled_bus_seat.svg'),
@@ -576,18 +581,18 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   }
 
   // --- SHOW SEAT PREVIEW MODAL ---
-  void _showSeatPreviewModal(
+  Future<bool> _showSeatPreviewModal(
     BuildContext context,
     String seatLabel,
     int seatPrice,
     VoidCallback onSelect,
-  ) {
+  ) async {
     final seatSection = _getSeatSection(seatLabel);
     final generalComment =
         generalSeatComments[seatSection] ?? 'General seating info unavailable.';
     final seatComment = seatSpecificComments[seatLabel] ?? generalComment;
 
-    showDialog(
+    final didConfirm = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (ctx) {
@@ -597,15 +602,17 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
 
           // Keep your seat view images named like A1.jpg, B3.jpg, etc.
           onSelectSeat: () {
-            Navigator.pop(ctx); // close modal
+            Navigator.pop(ctx, true); // close modal and confirm selection
             onSelect(); // actually select seat
           },
           onClose: () {
-            Navigator.pop(ctx); // just close modal
+            Navigator.pop(ctx, false); // just close modal
           },
         );
       },
     );
+
+    return didConfirm ?? false;
   }
 
   // Reusable function to build the seat section row-by-row with labels (Unchanged)
@@ -618,6 +625,21 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
     return List.generate(rows, (rowIndex) {
       final absoluteRowIndex = startRowIndex + rowIndex;
       final rowLabel = _getRowLabel(absoluteRowIndex);
+      final displaySeatStates = List<SeatState>.generate(cols, (colIndex) {
+        final currentSeatState = seatStates[rowIndex][colIndex];
+        final seatNumber = SeatNumber(
+          rowI: absoluteRowIndex,
+          colI: colIndex,
+          price: _getPriceByRowIndex(absoluteRowIndex),
+        );
+
+        if (currentSeatState == SeatState.unselected &&
+            selectedSeats.contains(seatNumber)) {
+          return SeatState.selected;
+        }
+
+        return currentSeatState;
+      });
 
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 10.0),
@@ -626,7 +648,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             SizedBox(
-              width: 20,
+              width: 16,
               child: Text(
                 rowLabel,
                 textAlign: TextAlign.right,
@@ -637,10 +659,10 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                 ),
               ),
             ),
-            const SizedBox(width: 25),
+            const SizedBox(width: 14),
             Center(
               child: SeatLayoutWidget(
-                onSeatStateChanged: (localRowI, colI, seatState) {
+                onSeatStateChanged: (localRowI, colI, seatState) async {
                   final seatPrice = _getPriceByRowIndex(absoluteRowIndex);
                   final seatLabel =
                       '${_getRowLabel(absoluteRowIndex)}${colI + 1}';
@@ -650,7 +672,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                     price: seatPrice,
                   );
                   if (seatState == SeatState.selected) {
-                    _showSeatPreviewModal(
+                    return _showSeatPreviewModal(
                       context,
                       seatLabel,
                       seatPrice,
@@ -661,16 +683,16 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                         });
                       },
                     );
-                  } else {
-                    // Don't open modal when deselecting — just remove the seat
-                    setState(() {
-                      selectedSeats.remove(seatNumber);
-                      _calculateTotalPrice();
-                    });
                   }
+
+                  setState(() {
+                    selectedSeats.remove(seatNumber);
+                    _calculateTotalPrice();
+                  });
+                  return true;
                 },
                 stateModel: SeatLayoutStateModel(
-                  currentSeatsState: [seatStates[rowIndex]],
+                  currentSeatsState: [displaySeatStates],
                   pathDisabledSeat: 'assets/images/svg_disabled_bus_seat.svg',
                   pathSelectedSeat: 'assets/images/svg_selected_bus_seats.svg',
                   pathSoldSeat: 'assets/images/svg_sold_bus_seat.svg',
@@ -678,13 +700,13 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                       'assets/images/svg_unselected_bus_seat.svg',
                   rows: 1,
                   cols: cols,
-                  seatSvgSize: 28,
+                  seatSvgSize: 22,
                 ),
               ),
             ),
-            const SizedBox(width: 20),
+            const SizedBox(width: 12),
             SizedBox(
-              width: 20,
+              width: 16,
               child: Text(
                 rowLabel,
                 textAlign: TextAlign.left,

@@ -1,12 +1,14 @@
 // ignore_for_file: unreachable_switch_default
 
+import 'dart:async';
+
 import 'package:book_my_seat/book_my_seat.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class SeatWidget extends StatefulWidget {
   final SeatModel model;
-  final void Function(int rowI, int colI, SeatState currentState)
+  final FutureOr<bool> Function(int rowI, int colI, SeatState currentState)
       onSeatStateChanged;
 
   const SeatWidget({
@@ -60,38 +62,57 @@ class _SeatWidgetState extends State<SeatWidget>
   }
 
   @override
+  void didUpdateWidget(covariant SeatWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.model.seatState != seatState) {
+      setState(() {
+        seatState = widget.model.seatState;
+        _syncGlowWithSeatState();
+      });
+    }
+  }
+
+  void _syncGlowWithSeatState() {
+    if (seatState == SeatState.selected) {
+      _glowController.forward();
+    } else {
+      _glowController.stop();
+      _glowController.reset();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final seatSize = widget.model.seatSvgSize.toDouble();
 
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          // --- Seat Tap Behavior ---
-          if (seatState == SeatState.unselected) {
-            seatState = SeatState.selected;
-          } else if (seatState == SeatState.selected) {
-            seatState = SeatState.unselected;
-          }
+      onTap: () async {
+        final nextState = switch (seatState) {
+          SeatState.unselected => SeatState.selected,
+          SeatState.selected => SeatState.unselected,
+          _ => null,
+        };
 
-          // Control glow animation based on state
-          if (seatState == SeatState.selected) {
-            _glowController.forward();
-          } else {
-            _glowController.stop();
-          }
-        });
+        if (nextState == null) return;
 
-        widget.onSeatStateChanged(
+        final shouldApplyState = await widget.onSeatStateChanged(
           widget.model.rowI,
           widget.model.colI,
-          seatState,
+          nextState,
         );
+
+        if (!mounted || !shouldApplyState) return;
+
+        setState(() {
+          seatState = nextState;
+          _syncGlowWithSeatState();
+        });
       },
       child: AnimatedBuilder(
         animation: _glowController,
         builder: (context, _) {
           bool isSelected = seatState == SeatState.selected;
-        
 
           return Container(
             alignment: Alignment.center,
@@ -110,8 +131,7 @@ class _SeatWidgetState extends State<SeatWidget>
                         spreadRadius: 20 * _glowAnimation.value,
                       ),
                     ]
-                  
-                      : null,
+                  : null,
             ),
             child: Stack(
               alignment: Alignment.center,

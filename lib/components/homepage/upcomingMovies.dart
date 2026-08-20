@@ -24,7 +24,7 @@ class _UpcomingMoviesState extends State<UpcomingMovies> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 320, // slightly taller for long names
+      height: 340, // slightly taller for long names
       child: Padding(
         padding: const EdgeInsets.only(top: 30, left: 10, right: 10),
         child: Column(
@@ -84,10 +84,19 @@ class _UpcomingMoviesState extends State<UpcomingMovies> {
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(10),
                                 child: Image.network(
-                                  "https://image.tmdb.org/t/p/w500${movie.posterPath}",
+                                  movie.posterPath,
                                   height: 170,
                                   width: 120,
                                   fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Container(
+                                    height: 170,
+                                    width: 120,
+                                    color:
+                                        const Color.fromARGB(255, 40, 40, 40),
+                                    alignment: Alignment.center,
+                                    child: const Icon(Icons.local_movies,
+                                        color: Colors.white54),
+                                  ),
                                 ),
                               ),
                             ),

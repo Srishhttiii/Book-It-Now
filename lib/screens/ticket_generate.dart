@@ -4,6 +4,48 @@ import '../services/api_client.dart';
 import '../services/booking_service.dart';
 import 'my_bookings.dart';
 
+class _TicketPoster extends StatelessWidget {
+  final String? url;
+
+  const _TicketPoster({required this.url});
+
+  @override
+  Widget build(BuildContext context) {
+    final imageUrl = url ?? '';
+    if (!imageUrl.startsWith('http')) {
+      return Container(
+        height: 120,
+        width: double.infinity,
+        color: const Color.fromARGB(255, 210, 210, 210),
+        alignment: Alignment.center,
+        child: const Icon(
+          Icons.local_movies,
+          color: Color.fromARGB(255, 100, 0, 0),
+          size: 42,
+        ),
+      );
+    }
+
+    return Image.network(
+      imageUrl,
+      height: 200,
+      width: double.infinity,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => Container(
+        height: 120,
+        width: double.infinity,
+        color: const Color.fromARGB(255, 210, 210, 210),
+        alignment: Alignment.center,
+        child: const Icon(
+          Icons.local_movies,
+          color: Color.fromARGB(255, 100, 0, 0),
+          size: 42,
+        ),
+      ),
+    );
+  }
+}
+
 class TicketPage extends StatefulWidget {
   final int movieId;
   final String movieTitle;
@@ -42,20 +84,36 @@ class _TicketPageState extends State<TicketPage> {
     generateBookingId();
   }
 
-  Future<void> fetchMoviePoster() async {
-    try {
-      final data = await ApiClient.getJson('/tmdb/movie/${widget.movieId}')
-          as Map<String, dynamic>;
-      if (!mounted) return;
-      setState(() {
-        posterUrl = 'https://image.tmdb.org/t/p/w500/${data['poster_path']}';
-      });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        posterUrl = '';
-      });
+  Future<String> _fetchPosterUrl() async {
+    Object? lastError;
+
+    for (var attempt = 1; attempt <= 3; attempt += 1) {
+      try {
+        final data = await ApiClient.getJson('/tmdb/movie/${widget.movieId}')
+            as Map<String, dynamic>;
+        final posterPath = data['poster_path']?.toString() ?? '';
+        if (posterPath.isNotEmpty) {
+          return 'https://image.tmdb.org/t/p/w500$posterPath';
+        }
+        return '';
+      } catch (error) {
+        lastError = error;
+        if (attempt < 3) {
+          await Future.delayed(Duration(milliseconds: 300 * attempt));
+        }
+      }
     }
+
+    debugPrint('Could not fetch ticket poster: $lastError');
+    return '';
+  }
+
+  Future<void> fetchMoviePoster() async {
+    final url = await _fetchPosterUrl();
+    if (!mounted) return;
+    setState(() {
+      posterUrl = url;
+    });
   }
 
   void generateBookingId() {
@@ -67,6 +125,17 @@ class _TicketPageState extends State<TicketPage> {
     setState(() => isSaving = true);
 
     try {
+      final posterToSave = (posterUrl ?? '').startsWith('http')
+          ? posterUrl!
+          : await _fetchPosterUrl();
+
+      if (!mounted) return;
+      if (posterToSave != posterUrl) {
+        setState(() {
+          posterUrl = posterToSave;
+        });
+      }
+
       await BookingService.saveTicketBooking(
         bookingId: bookingId,
         movieId: widget.movieId,
@@ -76,7 +145,7 @@ class _TicketPageState extends State<TicketPage> {
         showTime: widget.showTime,
         selectedSeats: widget.selectedSeats,
         totalPrice: widget.totalPrice,
-        posterUrl: posterUrl ?? '',
+        posterUrl: posterToSave,
         castList: widget.castList,
       );
 
@@ -144,12 +213,7 @@ class _TicketPageState extends State<TicketPage> {
                         borderRadius: const BorderRadius.vertical(
                           top: Radius.circular(24),
                         ),
-                        child: Image.network(
-                          posterUrl!,
-                          height: 200,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
+                        child: _TicketPoster(url: posterUrl),
                       ),
                       Padding(
                         padding: const EdgeInsets.all(16),

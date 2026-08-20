@@ -1,5 +1,6 @@
 const cors = require('cors');
 const express = require('express');
+const https = require('https');
 require('dotenv').config();
 
 const pool = require('./db');
@@ -98,6 +99,36 @@ function mapReview(row) {
 }
 
 
+function requestText(url) {
+  return new Promise((resolve, reject) => {
+    const request = https.get(
+      url,
+      {
+        headers: {
+          Accept: 'application/json',
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36',
+        },
+      },
+      (response) => {
+        let body = '';
+
+        response.setEncoding('utf8');
+        response.on('data', (chunk) => {
+          body += chunk;
+        });
+        response.on('end', () => {
+          resolve({ statusCode: response.statusCode, body });
+        });
+      }
+    );
+
+    request.on('error', reject);
+    request.setTimeout(15000, () => {
+      request.destroy(new Error('TMDB request timed out'));
+    });
+  });
+}
+
 async function fetchTmdb(path, params = {}) {
   const url = new URL(`${tmdbBaseUrl}${path}`);
   url.searchParams.set('api_key', tmdbApiKey);
@@ -108,17 +139,28 @@ async function fetchTmdb(path, params = {}) {
     }
   }
 
-  const response = await fetch(url);
-  const body = await response.text();
+  let lastError;
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      const { statusCode, body } = await requestText(url);
 
-  if (!response.ok) {
-    const error = new Error(`TMDB request failed with status ${response.status}`);
-    error.statusCode = response.status;
-    error.details = body;
-    throw error;
+      if (statusCode < 200 || statusCode >= 300) {
+        const error = new Error(`TMDB request failed with status ${statusCode}`);
+        error.statusCode = statusCode;
+        error.details = body;
+        throw error;
+      }
+
+      return body ? JSON.parse(body) : null;
+    } catch (error) {
+      lastError = error;
+      if (attempt < 3) {
+        await new Promise((resolve) => setTimeout(resolve, 300 * attempt));
+      }
+    }
   }
 
-  return body ? JSON.parse(body) : null;
+  throw lastError;
 }
 
 app.get('/tmdb/movie/:movieId', async (req, res, next) => {

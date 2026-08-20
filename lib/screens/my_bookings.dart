@@ -6,6 +6,55 @@ import 'review.dart';
 import '../services/booking_service.dart';
 import 'package:syncfusion_flutter_barcodes/barcodes.dart';
 
+class BookingPoster extends StatelessWidget {
+  final String? url;
+  final double? height;
+  final double? width;
+  final BorderRadius? borderRadius;
+  final BoxFit fit;
+
+  const BookingPoster({
+    super.key,
+    required this.url,
+    this.height,
+    this.width,
+    this.borderRadius,
+    this.fit = BoxFit.cover,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final imageUrl = url ?? '';
+    final fallback = Container(
+      height: height,
+      width: width,
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 143, 42, 42),
+        borderRadius: borderRadius,
+      ),
+      alignment: Alignment.center,
+      child: const Icon(
+        Icons.local_movies,
+        color: Colors.white,
+        size: 48,
+      ),
+    );
+
+    if (!imageUrl.startsWith('http')) return fallback;
+
+    final image = Image.network(
+      imageUrl,
+      height: height,
+      width: width,
+      fit: fit,
+      errorBuilder: (_, __, ___) => fallback,
+    );
+
+    if (borderRadius == null) return image;
+    return ClipRRect(borderRadius: borderRadius!, child: image);
+  }
+}
+
 class MyBookingsPage extends StatefulWidget {
   const MyBookingsPage({super.key});
 
@@ -118,38 +167,44 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
                           offset: const Offset(0, 6),
                         ),
                       ],
-                      image: DecorationImage(
-                        image: NetworkImage(booking['posterUrl'] ?? ''),
-                        fit: BoxFit.cover,
-                        colorFilter: ColorFilter.mode(
-                            Colors.black.withOpacity(0.45), BlendMode.darken),
-                      ),
                     ),
-                    alignment: Alignment.bottomLeft,
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    clipBehavior: Clip.antiAlias,
+                    child: Stack(
+                      fit: StackFit.expand,
                       children: [
-                        Text(
-                          booking['movieTitle'] ?? '',
-                          style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white),
+                        BookingPoster(
+                          url: booking['posterUrl']?.toString(),
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                        const SizedBox(height: 6),
-                        Text(
-                          "${booking['cinemaName'] ?? ''}, ${booking['cinemaLocation'] ?? ''}",
-                          style: const TextStyle(
-                              color: Colors.white70, fontSize: 14),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          booking['showTime'] ?? "Date not available",
-                          style: const TextStyle(
-                              color: Colors.white54, fontSize: 13),
+                        Container(color: Colors.black.withOpacity(0.45)),
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                booking['movieTitle'] ?? '',
+                                style: const TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                "${booking['cinemaName'] ?? ''}, ${booking['cinemaLocation'] ?? ''}",
+                                style: const TextStyle(
+                                    color: Colors.white70, fontSize: 14),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                booking['showTime'] ?? "Date not available",
+                                style: const TextStyle(
+                                    color: Colors.white54, fontSize: 13),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -191,13 +246,11 @@ class BookingDetailsSheet extends StatelessWidget {
                   color: Colors.white24,
                   borderRadius: BorderRadius.circular(3)),
             ),
-            ClipRRect(
+            BookingPoster(
+              url: booking['posterUrl']?.toString(),
+              height: 200,
+              width: double.infinity,
               borderRadius: BorderRadius.circular(16),
-              child: Image.network(
-                booking['posterUrl'] ?? '',
-                height: 200,
-                fit: BoxFit.cover,
-              ),
             ),
             const SizedBox(height: 16),
             Text(

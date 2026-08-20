@@ -1,11 +1,13 @@
+import 'dart:async';
+
 import 'package:book_my_seat/book_my_seat.dart';
 import 'package:flutter/material.dart';
 import 'seat_widget.dart';
 
-
 class SeatLayoutWidget extends StatelessWidget {
   final SeatLayoutStateModel stateModel;
-  final void Function(int rowI, int colI, SeatState currentState) onSeatStateChanged;
+  final FutureOr<bool> Function(int rowI, int colI, SeatState currentState)
+      onSeatStateChanged;
 
   const SeatLayoutWidget({
     super.key,
@@ -25,7 +27,7 @@ class SeatLayoutWidget extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(stateModel.cols, (colI) {
               return Padding(
-                padding: const EdgeInsets.all(4.0),
+                padding: const EdgeInsets.all(3.0),
                 child: SeatWidget(
                   model: SeatModel(
                     rowI: rowI,
@@ -36,7 +38,6 @@ class SeatLayoutWidget extends StatelessWidget {
                     pathUnSelectedSeat: stateModel.pathUnSelectedSeat,
                     pathSoldSeat: stateModel.pathSoldSeat,
                     pathDisabledSeat: stateModel.pathDisabledSeat,
-                    
                   ),
                   onSeatStateChanged: onSeatStateChanged,
                 ),
