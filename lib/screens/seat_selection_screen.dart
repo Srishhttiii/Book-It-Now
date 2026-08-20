@@ -1,6 +1,3 @@
-// seat_selection_screen.dart
-// lib/services/booking_service.dart
-
 import 'package:book_my_seat/book_my_seat.dart' hide SeatLayoutWidget;
 import '../components/seatselections/seat_layout_widget.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +7,6 @@ import '../models/constants.dart';
 import '../services/booking_service.dart';
 import 'ticket_generate.dart';
 
-// --- PRICE CONSTANTS ---
 const int _priceClassic = 200;
 const int _pricePrime = 350;
 
@@ -20,7 +16,6 @@ int _getPriceByRowIndex(int absoluteRowIndex) {
   return 0;
 }
 
-// --- GENERAL COMMENTS BASED ON SEAT SECTIONS ---
 final Map<String, String> generalSeatComments = {
   'front':
       'Front rows offer an immersive experience but can be too close for some viewers. Great for action lovers.',
@@ -30,7 +25,6 @@ final Map<String, String> generalSeatComments = {
       'Back rows are perfect for a relaxed, panoramic view and less crowding, though the screen appears smaller.',
 };
 
-// --- SPECIFIC COMMENTS FOR PARTICULAR SEATS (optional, extendable) ---
 final Map<String, String> seatSpecificComments = {
   'A1': 'Very close to the screen — best for full immersion.',
   'B5': 'Slightly off-center but still gives a good view.',
@@ -86,42 +80,31 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   Map<String, String> _parseBookingDetails() {
     final fullTitle = widget.bookingDetailsTitle;
 
-    // 1. Extract the Movie Title (everything before the first ' - ')
     final titleParts = fullTitle.split(' - ');
     String movieTitle =
         titleParts.isNotEmpty ? titleParts.first.trim() : widget.movieTitle;
 
-    // The remaining string contains the cinema, location, and date/time.
-    // Example: "INOX, Delhi (Thu, Sep 25 - 10:00 AM)"
     String remainingString = fullTitle.substring(movieTitle.length + 3).trim();
 
-    // Regex to capture "Cinema Details" (Group 1) and the content inside the parentheses (Group 2: Date and Time)
     final regex = RegExp(r'^(.*?)\s\((.*?)\)$');
     final match = regex.firstMatch(remainingString);
 
     String cinemaDetailsSubtitle = "N/A";
-    String showDateTime = "N/A"; // This will hold "Day, Date - Time"
+    String showDateTime = "N/A";
 
     if (match != null && match.groupCount == 2) {
-      // Group 1: Cinema Name, City Name (e.g., "INOX, Delhi")
       cinemaDetailsSubtitle = match.group(1)?.trim() ?? "N/A";
-      // Group 2: Day, Date - Time (e.g., "Thu, Sep 25 - 10:00 AM")
       showDateTime = match.group(2)?.trim() ?? "N/A";
-    }
-    // If regex fails, use existing logic as a fallback (less reliable)
-    else {
+    } else {
       cinemaDetailsSubtitle =
           remainingString.replaceAll(RegExp(r'\s*\([^)]*\)'), '').trim();
-      // Try to find the time/date in parentheses manually if regex failed
       final timeMatch = RegExp(r'\((.*?)\)$').firstMatch(remainingString);
       showDateTime = timeMatch?.group(1)?.trim() ?? "N/A";
     }
 
-    // Now, showDateTime holds the full string, including Day and Date.
     return {
       'movieTitle': movieTitle,
       'cinemaDetailsSubtitle': cinemaDetailsSubtitle,
-      // The full string including Day and Date is used for the banner.
       'showTime': showDateTime,
     };
   }
@@ -143,11 +126,9 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
     );
   }
 
-// --- HANDLE BOOKING PROCESS ---
   Future<void> _handleBooking() async {
     if (selectedSeats.isEmpty) return;
 
-    // 1. Show loading indicator
     setState(() {
       _isProcessing = true;
     });
@@ -155,9 +136,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
     final seatStrings =
         selectedSeats.map((seat) => seat.toSeatString(_getRowLabel)).toList();
 
-    // 2. using try-catch to handle errors from BookingService
     try {
-      // Call the booking service
       bool success = await BookingService.createBooking(
         movieId: widget.movieId,
         movieTitle: widget.movieTitle,
@@ -166,10 +145,8 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
         totalPrice: _totalPrice,
       );
 
-      // Check if the widget is still in the tree
       if (!mounted) return;
 
-      // 3. This 'if' will only run if success is true AND no error was thrown
       if (success) {
         Navigator.push(
           context,
@@ -187,8 +164,6 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
           ),
         );
       } else {
-        // This case handles when success is false but no exception was thrown
-
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Booking failed. Please try again.'),
@@ -197,17 +172,14 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
         );
       }
     } catch (e) {
-      // 4. This block will catch the *real* error from BookingService
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          // Display the actual error message
           content: Text(e.toString()),
           backgroundColor: Colors.red,
         ),
       );
     } finally {
-      // 5. 'finally' ensures the loading indicator is always hidden
       if (mounted) {
         setState(() {
           _isProcessing = false;
@@ -222,9 +194,8 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
     final details = _parseBookingDetails();
     final movieTitle = details['movieTitle']!;
     final cinemaDetailsSubtitle = details['cinemaDetailsSubtitle']!;
-    final showTime = details['showTime']!; // This is now "Day, Date - Time"
+    final showTime = details['showTime']!;
 
-    // Helper to build a section, update the index, and return the widgets
     List<Widget> buildSectionAndUpdate({
       required int rows,
       required int cols,
@@ -272,7 +243,6 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Show Time Banner - Now displays full date and time
                 Container(
                   width: double.infinity,
                   padding:
@@ -280,8 +250,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                   color: const Color.fromARGB(255, 65, 2, 2),
                   child: Center(
                     child: Text(
-                      // ShowTime now contains Day and Date
-                      'Show Time: $showTime', // Output: "Show Time: Thu, Sep 25 - 10:00 AM"
+                      'Show Time: $showTime',
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -290,7 +259,6 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 15),
                 const Text(
                   "Screen This Way",
@@ -314,11 +282,8 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                     ],
                   ),
                 ),
-
                 _buildSectionTitle('CLASSIC', _priceClassic),
                 const SizedBox(height: 5),
-
-                /// Section 1-A (Rows A, B, C, D)
                 ...buildSectionAndUpdate(
                   rows: 4,
                   cols: 10,
@@ -373,10 +338,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                     ],
                   ],
                 ),
-
                 const SizedBox(height: 18),
-
-                /// Section 1-B (Rows E, F, G, H) - Part of CLASSIC
                 ...buildSectionAndUpdate(
                   rows: 4,
                   cols: 10,
@@ -431,13 +393,9 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                     ],
                   ],
                 ),
-
                 const SizedBox(height: 18),
-
                 _buildSectionTitle('PRIME', _pricePrime),
                 const SizedBox(height: 10),
-
-                /// Section 2 (Rows I, J)
                 ...buildSectionAndUpdate(
                   rows: 2,
                   cols: 10,
@@ -468,7 +426,6 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                     ],
                   ],
                 ),
-
                 const SizedBox(height: 20),
                 Padding(
                   padding:
@@ -493,8 +450,6 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
           ),
         ),
       ),
-
-// Add this floating section after your Scaffold body:
       bottomSheet: selectedSeats.isEmpty
           ? null
           : AnimatedContainer(
@@ -571,7 +526,6 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
     );
   }
 
-// --- DETERMINE SEAT SECTION ---
   String _getSeatSection(String seatLabel) {
     final row = seatLabel[0].toUpperCase();
     if (['A', 'B', 'C', 'D'].contains(row)) return 'front';
@@ -580,7 +534,6 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
     return 'middle';
   }
 
-  // --- SHOW SEAT PREVIEW MODAL ---
   Future<bool> _showSeatPreviewModal(
     BuildContext context,
     String seatLabel,
@@ -599,14 +552,12 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
         return SeatPreviewModal(
           seatLabel: seatLabel,
           seatComment: seatComment,
-
-          // Keep your seat view images named like A1.jpg, B3.jpg, etc.
           onSelectSeat: () {
-            Navigator.pop(ctx, true); // close modal and confirm selection
-            onSelect(); // actually select seat
+            Navigator.pop(ctx, true);
+            onSelect();
           },
           onClose: () {
-            Navigator.pop(ctx, false); // just close modal
+            Navigator.pop(ctx, false);
           },
         );
       },
@@ -615,7 +566,6 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
     return didConfirm ?? false;
   }
 
-  // Reusable function to build the seat section row-by-row with labels (Unchanged)
   List<Widget> buildSeatSection({
     required int startRowIndex,
     required int rows,
@@ -736,7 +686,6 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   }
 }
 
-// --- SeatNumber CLASS (Unchanged) ---
 class SeatNumber {
   final int rowI;
   final int colI;

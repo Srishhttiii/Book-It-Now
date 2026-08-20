@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import '../../api_services/tmdb_api.dart';
+import '../../components/common/movie_poster_image.dart';
 import '../../models/constants.dart';
 import '../../models/movie_model.dart';
 import '../../screens/movie_detail_screen.dart';
@@ -24,7 +25,7 @@ class _UpcomingMoviesState extends State<UpcomingMovies> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 340, // slightly taller for long names
+      height: 340,
       child: Padding(
         padding: const EdgeInsets.only(top: 30, left: 10, right: 10),
         child: Column(
@@ -83,20 +84,10 @@ class _UpcomingMoviesState extends State<UpcomingMovies> {
                               },
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(10),
-                                child: Image.network(
-                                  movie.posterPath,
+                                child: MoviePosterImage(
+                                  url: movie.posterPath,
                                   height: 170,
                                   width: 120,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Container(
-                                    height: 170,
-                                    width: 120,
-                                    color:
-                                        const Color.fromARGB(255, 40, 40, 40),
-                                    alignment: Alignment.center,
-                                    child: const Icon(Icons.local_movies,
-                                        color: Colors.white54),
-                                  ),
                                 ),
                               ),
                             ),

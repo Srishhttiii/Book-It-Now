@@ -1,11 +1,13 @@
 import '../models/movie_detail_model.dart';
 import '../models/movie_model.dart';
 import '../services/api_client.dart';
+import '../utils/tmdb_image.dart';
 
 class ApiService {
   /// Fetch upcoming movies from TMDb through the local backend.
   Future<List<Movie>> fetchUpcomingMovies() async {
-    final data = await ApiClient.getJson('/tmdb/movie/upcoming/list') as Map<String, dynamic>;
+    final data = await ApiClient.getJson('/tmdb/movie/upcoming/list')
+        as Map<String, dynamic>;
     final List results = data['results'] ?? [];
 
     final filtered = results.where((movie) {
@@ -21,7 +23,8 @@ class ApiService {
     final upcomingMovies = await fetchUpcomingMovies();
     final upcomingIds = upcomingMovies.map((m) => m.id).toSet();
 
-    final data = await ApiClient.getJson('/tmdb/movie/now_playing/list') as Map<String, dynamic>;
+    final data = await ApiClient.getJson('/tmdb/movie/now_playing/list')
+        as Map<String, dynamic>;
     final List results = data['results'] ?? [];
     final today = DateTime.now();
 
@@ -47,9 +50,9 @@ class ApiService {
     return filtered.map((json) => Movie.fromJson(json)).toList();
   }
 
-  /// Fetch detailed movie info
   Future<MovieDetail> fetchMovieDetails(int movieId) async {
-    final data = await ApiClient.getJson('/tmdb/movie/$movieId/details') as Map<String, dynamic>;
+    final data = await ApiClient.getJson('/tmdb/movie/$movieId/details')
+        as Map<String, dynamic>;
     final detailJson = data['detail'] as Map<String, dynamic>;
     final creditsJson = data['credits'] as Map<String, dynamic>;
     final reviewsJson = data['reviews'] as Map<String, dynamic>;
@@ -63,15 +66,18 @@ class ApiService {
       runtime: detailJson['runtime'] ?? 0,
       rating: (detailJson['vote_average'] ?? 0).toDouble(),
       voteCount: detailJson['vote_count'] ?? 0,
-      backdropPath: detailJson['backdrop_path'] ?? '',
-      posterPath: detailJson['poster_path'] ?? '',
+      backdropPath: TmdbImage.backdrop(detailJson['backdrop_path']?.toString()),
+      posterPath: TmdbImage.poster(detailJson['poster_path']?.toString()),
       cast: (creditsJson['cast'] as List).map((c) => Cast.fromJson(c)).toList(),
-      reviews: (reviewsJson['results'] as List).map((r) => Review.fromJson(r)).toList(),
+      reviews: (reviewsJson['results'] as List)
+          .map((r) => Review.fromJson(r))
+          .toList(),
     );
   }
 
   Future<List<Movie>> fetchTrendingMovies() async {
-    final data = await ApiClient.getJson('/tmdb/trending/movie/week') as Map<String, dynamic>;
+    final data = await ApiClient.getJson('/tmdb/trending/movie/week')
+        as Map<String, dynamic>;
     final List results = data['results'] ?? [];
     return results.map((json) => Movie.fromJson(json)).toList();
   }

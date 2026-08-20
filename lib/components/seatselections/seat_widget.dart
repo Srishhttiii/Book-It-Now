@@ -32,7 +32,6 @@ class _SeatWidgetState extends State<SeatWidget>
     super.initState();
     seatState = widget.model.seatState;
 
-    // ✨ Setup pulsing glow animation
     _glowController =
         AnimationController(vsync: this, duration: const Duration(seconds: 1))
           ..addStatusListener((status) {
@@ -49,7 +48,6 @@ class _SeatWidgetState extends State<SeatWidget>
       curve: Curves.easeInOut,
     ));
 
-    // Start glow if seat was already selected
     if (seatState == SeatState.selected) {
       _glowController.forward();
     }
@@ -119,7 +117,6 @@ class _SeatWidgetState extends State<SeatWidget>
             decoration: BoxDecoration(
               boxShadow: isSelected
                   ? [
-                      // Strong glowing red effect for selected
                       BoxShadow(
                         color: Colors.redAccent.withOpacity(0.9),
                         blurRadius: 30 * _glowAnimation.value,
@@ -136,14 +133,11 @@ class _SeatWidgetState extends State<SeatWidget>
             child: Stack(
               alignment: Alignment.center,
               children: [
-                // 🪑 Seat SVG based on its state
                 SvgPicture.asset(
                   _getSvgForSeat(seatState),
                   width: seatSize,
                   height: seatSize,
                 ),
-
-                // ✨ Light overlay for glowing shine (selected only)
                 if (isSelected)
                   Opacity(
                     opacity: 0.6,
@@ -170,7 +164,6 @@ class _SeatWidgetState extends State<SeatWidget>
     );
   }
 
-  // 🖼️ SVG Paths for different seat states
   String _getSvgForSeat(SeatState state) {
     switch (state) {
       case SeatState.selected:

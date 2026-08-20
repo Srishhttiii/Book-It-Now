@@ -4,56 +4,8 @@ import 'package:flutter/material.dart';
 import 'homepage.dart';
 import 'review.dart';
 import '../services/booking_service.dart';
+import '../components/common/movie_poster_image.dart';
 import 'package:syncfusion_flutter_barcodes/barcodes.dart';
-
-class BookingPoster extends StatelessWidget {
-  final String? url;
-  final double? height;
-  final double? width;
-  final BorderRadius? borderRadius;
-  final BoxFit fit;
-
-  const BookingPoster({
-    super.key,
-    required this.url,
-    this.height,
-    this.width,
-    this.borderRadius,
-    this.fit = BoxFit.cover,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final imageUrl = url ?? '';
-    final fallback = Container(
-      height: height,
-      width: width,
-      decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 143, 42, 42),
-        borderRadius: borderRadius,
-      ),
-      alignment: Alignment.center,
-      child: const Icon(
-        Icons.local_movies,
-        color: Colors.white,
-        size: 48,
-      ),
-    );
-
-    if (!imageUrl.startsWith('http')) return fallback;
-
-    final image = Image.network(
-      imageUrl,
-      height: height,
-      width: width,
-      fit: fit,
-      errorBuilder: (_, __, ___) => fallback,
-    );
-
-    if (borderRadius == null) return image;
-    return ClipRRect(borderRadius: borderRadius!, child: image);
-  }
-}
 
 class MyBookingsPage extends StatefulWidget {
   const MyBookingsPage({super.key});
@@ -172,9 +124,12 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        BookingPoster(
+                        MoviePosterImage(
                           url: booking['posterUrl']?.toString(),
                           borderRadius: BorderRadius.circular(20),
+                          fallbackColor: const Color.fromARGB(255, 143, 42, 42),
+                          iconColor: Colors.white,
+                          iconSize: 48,
                         ),
                         Container(color: Colors.black.withOpacity(0.45)),
                         Padding(
@@ -246,11 +201,14 @@ class BookingDetailsSheet extends StatelessWidget {
                   color: Colors.white24,
                   borderRadius: BorderRadius.circular(3)),
             ),
-            BookingPoster(
+            MoviePosterImage(
               url: booking['posterUrl']?.toString(),
               height: 200,
               width: double.infinity,
               borderRadius: BorderRadius.circular(16),
+              fallbackColor: const Color.fromARGB(255, 143, 42, 42),
+              iconColor: Colors.white,
+              iconSize: 48,
             ),
             const SizedBox(height: 16),
             Text(

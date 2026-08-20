@@ -2,6 +2,7 @@ import 'package:bookmyshowclone/models/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import '../api_services/tmdb_api.dart';
+import '../components/common/movie_poster_image.dart';
 import '../models/movie_detail_model.dart';
 import 'select_location_screen.dart';
 import '../services/api_client.dart';
@@ -129,18 +130,14 @@ class MovieDetailScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                      child: ClipRRect(
+                      child: MoviePosterImage(
+                        url: movie.backdropPath,
+                        height: 200,
+                        width: double.infinity,
                         borderRadius: BorderRadius.circular(12),
-                        child: Image.network(
-                          "https://image.tmdb.org/t/p/w500${movie.backdropPath}",
-                          height: 200,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
                       ),
                     ),
 
-                    // --- Title ---
                     Padding(
                       padding: const EdgeInsets.only(
                           left: 15.0, right: 15.0, top: 20, bottom: 5),
@@ -153,7 +150,6 @@ class MovieDetailScreen extends StatelessWidget {
                       ),
                     ),
 
-                    // --- Rating ---
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12.0),
                       child: Row(
@@ -171,7 +167,6 @@ class MovieDetailScreen extends StatelessWidget {
 
                     const SizedBox(height: 10),
 
-                    // --- Overview ---
                     Padding(
                       padding: const EdgeInsets.only(
                           left: 20.0, right: 20.0, top: 12),
@@ -186,7 +181,6 @@ class MovieDetailScreen extends StatelessWidget {
                       ),
                     ),
 
-                    // --- Cast Section ---
                     const Padding(
                       padding:
                           EdgeInsets.symmetric(horizontal: 12.0, vertical: 30),
@@ -214,13 +208,11 @@ class MovieDetailScreen extends StatelessWidget {
                               children: [
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(50),
-                                  child: Image.network(
-                                    actor.profilePath.isNotEmpty
-                                        ? "https://image.tmdb.org/t/p/w200${actor.profilePath}"
-                                        : "https://via.placeholder.com/100",
+                                  child: MoviePosterImage(
+                                    url: actor.profilePath,
                                     height: 80,
                                     width: 80,
-                                    fit: BoxFit.cover,
+                                    borderRadius: BorderRadius.circular(50),
                                   ),
                                 ),
                                 const SizedBox(height: 5),
@@ -249,7 +241,6 @@ class MovieDetailScreen extends StatelessWidget {
                       ),
                     ),
 
-                    // --- TMDB Reviews (existing) ---
                     const Padding(
                       padding:
                           EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),

@@ -1,50 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_barcodes/barcodes.dart';
+import '../components/common/movie_poster_image.dart';
+import '../utils/tmdb_image.dart';
 import '../services/api_client.dart';
 import '../services/booking_service.dart';
 import 'my_bookings.dart';
-
-class _TicketPoster extends StatelessWidget {
-  final String? url;
-
-  const _TicketPoster({required this.url});
-
-  @override
-  Widget build(BuildContext context) {
-    final imageUrl = url ?? '';
-    if (!imageUrl.startsWith('http')) {
-      return Container(
-        height: 120,
-        width: double.infinity,
-        color: const Color.fromARGB(255, 210, 210, 210),
-        alignment: Alignment.center,
-        child: const Icon(
-          Icons.local_movies,
-          color: Color.fromARGB(255, 100, 0, 0),
-          size: 42,
-        ),
-      );
-    }
-
-    return Image.network(
-      imageUrl,
-      height: 200,
-      width: double.infinity,
-      fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => Container(
-        height: 120,
-        width: double.infinity,
-        color: const Color.fromARGB(255, 210, 210, 210),
-        alignment: Alignment.center,
-        child: const Icon(
-          Icons.local_movies,
-          color: Color.fromARGB(255, 100, 0, 0),
-          size: 42,
-        ),
-      ),
-    );
-  }
-}
 
 class TicketPage extends StatefulWidget {
   final int movieId;
@@ -93,7 +53,7 @@ class _TicketPageState extends State<TicketPage> {
             as Map<String, dynamic>;
         final posterPath = data['poster_path']?.toString() ?? '';
         if (posterPath.isNotEmpty) {
-          return 'https://image.tmdb.org/t/p/w500$posterPath';
+          return TmdbImage.poster(posterPath);
         }
         return '';
       } catch (error) {
@@ -120,7 +80,6 @@ class _TicketPageState extends State<TicketPage> {
     bookingId = 'BK${DateTime.now().millisecondsSinceEpoch}';
   }
 
-  // Save booking to the MySQL backend.
   Future<void> saveBookingToMySql() async {
     setState(() => isSaving = true);
 
@@ -208,12 +167,15 @@ class _TicketPageState extends State<TicketPage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Poster
-                      ClipRRect(
+                      MoviePosterImage(
+                        url: posterUrl,
+                        height: 200,
+                        width: double.infinity,
                         borderRadius: const BorderRadius.vertical(
                           top: Radius.circular(24),
                         ),
-                        child: _TicketPoster(url: posterUrl),
+                        fallbackColor: const Color.fromARGB(255, 210, 210, 210),
+                        iconColor: const Color.fromARGB(255, 100, 0, 0),
                       ),
                       Padding(
                         padding: const EdgeInsets.all(16),
@@ -229,8 +191,6 @@ class _TicketPageState extends State<TicketPage> {
                               ),
                             ),
                             const SizedBox(height: 10),
-
-                            // Location Row
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -258,8 +218,6 @@ class _TicketPageState extends State<TicketPage> {
                               ],
                             ),
                             const SizedBox(height: 6),
-
-                            // Date & Time Row
                             Row(
                               children: [
                                 const Text(
@@ -276,8 +234,6 @@ class _TicketPageState extends State<TicketPage> {
                               ],
                             ),
                             const SizedBox(height: 10),
-
-                            // Seats Row
                             Row(
                               children: [
                                 const Icon(
@@ -295,8 +251,6 @@ class _TicketPageState extends State<TicketPage> {
                               ],
                             ),
                             const SizedBox(height: 6),
-
-                            // Price Row
                             Row(
                               children: [
                                 const Icon(
@@ -320,10 +274,7 @@ class _TicketPageState extends State<TicketPage> {
                           ],
                         ),
                       ),
-
                       Divider(color: Colors.grey[400], thickness: 1),
-
-                      // Barcode
                       const SizedBox(height: 10),
                       SizedBox(
                         height: 80,
@@ -349,8 +300,6 @@ class _TicketPageState extends State<TicketPage> {
                 ),
               ),
       ),
-
-      // Bottom Button -> Save to MySQL
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.only(bottom: 30.0, right: 15, left: 15),
         child: ElevatedButton(

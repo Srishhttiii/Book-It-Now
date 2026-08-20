@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import '../../api_services/tmdb_api.dart';
+import '../../components/common/movie_poster_image.dart';
 import '../../models/movie_model.dart';
 import '../../models/constants.dart';
 import '../screens/movie_detail_screen.dart';
@@ -89,13 +90,10 @@ class _GenreMoviesScreenState extends State<GenreMoviesScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child: ClipRRect(
+                      child: MoviePosterImage(
+                        url: movie.posterPath,
+                        width: double.infinity,
                         borderRadius: BorderRadius.circular(10),
-                        child: Image.network(
-                          movie.posterPath,
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                        ),
                       ),
                     ),
                     const SizedBox(height: 6),

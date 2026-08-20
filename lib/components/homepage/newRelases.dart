@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import '../../api_services/tmdb_api.dart';
+import '../../components/common/movie_poster_image.dart';
 import '../../models/movie_model.dart';
 import '../../screens/new_releases_screen.dart';
 import '../../screens/movie_detail_screen.dart';
@@ -107,26 +108,14 @@ class _NewReleasesState extends State<NewReleases> {
                                 },
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(10),
-                                  child: Image.network(
-                                    movie.posterPath,
+                                  child: MoviePosterImage(
+                                    url: movie.posterPath,
                                     height: 180,
                                     width: 150,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => Container(
-                                      height: 180,
-                                      width: 150,
-                                      color:
-                                          const Color.fromARGB(255, 40, 40, 40),
-                                      alignment: Alignment.center,
-                                      child: const Icon(Icons.local_movies,
-                                          color: Colors.white54),
-                                    ),
                                   ),
                                 ),
                               ),
-
                               const SizedBox(height: 5),
-                              // Title
                               Text(
                                 movie.title,
                                 maxLines: 2,
@@ -138,7 +127,6 @@ class _NewReleasesState extends State<NewReleases> {
                                     color: Colors.white),
                               ),
                               const SizedBox(height: 3),
-                              // Rating
                               Row(
                                 children: [
                                   RatingBarIndicator(

@@ -1,5 +1,7 @@
+import '../utils/tmdb_image.dart';
+
 class Movie {
-  final int id;   
+  final int id;
   final String title;
   final String posterPath;
   final String backdropPath;
@@ -19,8 +21,8 @@ class Movie {
     return Movie(
       id: json['id'],
       title: json['title'] ?? '',
-      posterPath: "https://image.tmdb.org/t/p/w500${json['poster_path']}",
-      backdropPath: "https://image.tmdb.org/t/p/w500${json['backdrop_path']}",
+      posterPath: TmdbImage.poster(json['poster_path']?.toString()),
+      backdropPath: TmdbImage.backdrop(json['backdrop_path']?.toString()),
       rating: (json['vote_average'] ?? 0).toDouble(),
       overview: json['overview'] ?? '',
     );

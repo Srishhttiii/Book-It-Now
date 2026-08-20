@@ -1,3 +1,5 @@
+import '../utils/tmdb_image.dart';
+
 class MovieDetail {
   final int id;
   final String title;
@@ -54,13 +56,14 @@ class Cast {
   final String character;
   final String profilePath;
 
-  Cast({required this.name, required this.character, required this.profilePath});
+  Cast(
+      {required this.name, required this.character, required this.profilePath});
 
   factory Cast.fromJson(Map<String, dynamic> json) {
     return Cast(
       name: json['name'] ?? '',
       character: json['character'] ?? '',
-      profilePath: json['profile_path'] ?? '',
+      profilePath: TmdbImage.profile(json['profile_path']?.toString()),
     );
   }
 }
