@@ -6,70 +6,39 @@ USE book_it_now;
 
 CREATE TABLE IF NOT EXISTS users (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  firebase_uid VARCHAR(128) NULL,
-  display_name VARCHAR(120) NOT NULL,
-  email VARCHAR(190) NOT NULL,
-  wallet_balance DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+  firebase_uid VARCHAR(128) NOT NULL,
+  display_name VARCHAR(120) NULL,
+  email VARCHAR(190) NULL,
+  wallet_balance DECIMAL(10, 2) NOT NULL DEFAULT 1000.00,
+  credits INT NOT NULL DEFAULT 500,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
-  UNIQUE KEY uq_users_email (email),
-  UNIQUE KEY uq_users_firebase_uid (firebase_uid)
-);
-
-CREATE TABLE IF NOT EXISTS movies (
-  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  tmdb_id BIGINT UNSIGNED NULL,
-  title VARCHAR(255) NOT NULL,
-  summary TEXT NULL,
-  poster_path VARCHAR(500) NULL,
-  release_date DATE NULL,
-  rating DECIMAL(3, 1) NULL,
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
-  UNIQUE KEY uq_movies_tmdb_id (tmdb_id)
-);
-
-CREATE TABLE IF NOT EXISTS cinemas (
-  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  name VARCHAR(190) NOT NULL,
-  city VARCHAR(120) NOT NULL,
-  address VARCHAR(500) NULL,
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (id)
-);
-
-CREATE TABLE IF NOT EXISTS showtimes (
-  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  movie_id BIGINT UNSIGNED NOT NULL,
-  cinema_id BIGINT UNSIGNED NOT NULL,
-  starts_at DATETIME NOT NULL,
-  screen_name VARCHAR(80) NULL,
-  base_price DECIMAL(10, 2) NOT NULL,
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
-  KEY idx_showtimes_movie_id (movie_id),
-  KEY idx_showtimes_cinema_id (cinema_id),
-  CONSTRAINT fk_showtimes_movie FOREIGN KEY (movie_id) REFERENCES movies (id),
-  CONSTRAINT fk_showtimes_cinema FOREIGN KEY (cinema_id) REFERENCES cinemas (id)
+  UNIQUE KEY uq_users_firebase_uid (firebase_uid),
+  UNIQUE KEY uq_users_email (email)
 );
 
 CREATE TABLE IF NOT EXISTS bookings (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  booking_code VARCHAR(64) NOT NULL,
   user_id BIGINT UNSIGNED NOT NULL,
   movie_id BIGINT UNSIGNED NOT NULL,
-  showtime_id BIGINT UNSIGNED NOT NULL,
+  movie_title VARCHAR(255) NOT NULL,
+  cinema_name VARCHAR(190) NULL,
+  cinema_location VARCHAR(255) NULL,
+  show_time_text VARCHAR(120) NULL,
   total_price DECIMAL(10, 2) NOT NULL,
-  status ENUM('pending', 'confirmed', 'cancelled') NOT NULL DEFAULT 'pending',
+  poster_url VARCHAR(500) NULL,
+  cast_list_json JSON NULL,
+  reviewed BOOLEAN NOT NULL DEFAULT FALSE,
+  status ENUM('pending', 'confirmed', 'cancelled') NOT NULL DEFAULT 'confirmed',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
+  UNIQUE KEY uq_bookings_booking_code (booking_code),
   KEY idx_bookings_user_id (user_id),
-  KEY idx_bookings_showtime_id (showtime_id),
-  CONSTRAINT fk_bookings_user FOREIGN KEY (user_id) REFERENCES users (id),
-  CONSTRAINT fk_bookings_movie FOREIGN KEY (movie_id) REFERENCES movies (id),
-  CONSTRAINT fk_bookings_showtime FOREIGN KEY (showtime_id) REFERENCES showtimes (id)
+  KEY idx_bookings_movie_id (movie_id),
+  CONSTRAINT fk_bookings_user FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
 CREATE TABLE IF NOT EXISTS booking_seats (
@@ -97,14 +66,25 @@ CREATE TABLE IF NOT EXISTS wallet_transactions (
 CREATE TABLE IF NOT EXISTS reviews (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   user_id BIGINT UNSIGNED NOT NULL,
+  booking_id BIGINT UNSIGNED NOT NULL,
   movie_id BIGINT UNSIGNED NOT NULL,
+  movie_title VARCHAR(255) NULL,
   rating TINYINT UNSIGNED NOT NULL,
-  comment TEXT NULL,
+  story VARCHAR(255) NULL,
+  acting VARCHAR(255) NULL,
+  visuals VARCHAR(255) NULL,
+  music VARCHAR(255) NULL,
+  recommend_to VARCHAR(120) NULL,
+  emoji VARCHAR(16) NULL,
+  favorite_character VARCHAR(190) NULL,
+  expectation VARCHAR(255) NULL,
+  comments TEXT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
-  UNIQUE KEY uq_reviews_user_movie (user_id, movie_id),
+  UNIQUE KEY uq_reviews_user_booking (user_id, booking_id),
+  KEY idx_reviews_movie_id (movie_id),
   CONSTRAINT fk_reviews_user FOREIGN KEY (user_id) REFERENCES users (id),
-  CONSTRAINT fk_reviews_movie FOREIGN KEY (movie_id) REFERENCES movies (id),
+  CONSTRAINT fk_reviews_booking FOREIGN KEY (booking_id) REFERENCES bookings (id) ON DELETE CASCADE,
   CONSTRAINT chk_reviews_rating CHECK (rating BETWEEN 1 AND 5)
 );

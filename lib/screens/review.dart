@@ -4,9 +4,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../services/credits_manager.dart';
+import '../services/api_client.dart';
+import '../services/booking_service.dart';
 
 class ReviewPage extends StatefulWidget {
   final String bookingId;
@@ -113,36 +113,24 @@ class _ReviewPageState extends State<ReviewPage> {
     if (user == null) return;
 
     try {
-      final doc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .collection('bookings')
-          .doc(widget.bookingId)
-          .get();
+      final data = await BookingService.getBooking(widget.bookingId);
+      if (data == null) return;
 
-      if (!doc.exists) return;
-      final data = doc.data()!;
       setState(() {
-        movieId = data['movieId'];
+        movieId = (data['movieId'] as num?)?.toInt();
         movieTitle = data['movieTitle'];
         posterUrl = data['posterUrl'];
         castList = List<String>.from(data['castList'] ?? []);
       });
 
-      // Now check if review already exists
-      final reviewQuery = await FirebaseFirestore.instance
-          .collection('reviews')
-          .where('bookingId', isEqualTo: widget.bookingId)
-          .where('userId', isEqualTo: user.uid)
-          .limit(1)
-          .get();
+      try {
+        final reviewData = await ApiClient.getJson(
+          '/users/${user.uid}/reviews/${widget.bookingId}',
+        ) as Map<String, dynamic>;
 
-      if (reviewQuery.docs.isNotEmpty) {
-        final review = reviewQuery.docs.first;
-        final reviewData = review.data();
         setState(() {
-          reviewDocId = review.id;
-          _rating = reviewData['rating'] ?? 0;
+          reviewDocId = reviewData['id'].toString();
+          _rating = (reviewData['rating'] as num?)?.toInt() ?? 0;
           _story = reviewData['story'] ?? "Select";
           _acting = reviewData['acting'] ?? "Select";
           _visuals = reviewData['visuals'] ?? "Select";
@@ -155,8 +143,11 @@ class _ReviewPageState extends State<ReviewPage> {
           _isReviewed = true;
           _isEditEnabled = true;
         });
+      } catch (_) {
+        // No existing review yet.
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text('Error: $e')));
     }
@@ -180,14 +171,19 @@ class _ReviewPageState extends State<ReviewPage> {
 
     setState(() => _isLoading = true);
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+    if (user == null) {
+      setState(() => _isLoading = false);
+      return;
+    }
+
+    final wasReviewed = _isReviewed;
 
     try {
-      final reviewData = {
+      final response = await ApiClient.postJson('/reviews', {
+        'firebaseUid': user.uid,
         'bookingId': widget.bookingId,
         'movieId': movieId,
         'movieTitle': movieTitle,
-        'userId': user.uid,
         'rating': _rating,
         'story': _story,
         'acting': _acting,
@@ -198,44 +194,20 @@ class _ReviewPageState extends State<ReviewPage> {
         'favoriteCharacter': _favoriteCharacter,
         'expectation': _expectation,
         'comments': _commentsController.text,
-        'updatedAt': FieldValue.serverTimestamp(),
-      };
+      }) as Map<String, dynamic>;
 
-      if (_isReviewed && reviewDocId != null) {
-        // Update existing review (no credits)
-        await FirebaseFirestore.instance
-            .collection('reviews')
-            .doc(reviewDocId)
-            .update(reviewData);
-      } else {
-        // First submission → add new review + credits
-        reviewData['createdAt'] = FieldValue.serverTimestamp();
-        final newReview = await FirebaseFirestore.instance
-            .collection('reviews')
-            .add(reviewData);
-        reviewDocId = newReview.id;
-
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .collection('bookings')
-            .doc(widget.bookingId)
-            .update({'reviewed': true});
-
-        await CreditsManager.addCredits(_earnedCredits);
-
-        setState(() => _showPopup = true);
-      }
+      final earnedCredits = (response['earnedCredits'] as num?)?.toInt() ?? 0;
 
       setState(() {
         _isReviewed = true;
         _isEditEnabled = true;
         _isEditing = false;
+        _showPopup = earnedCredits > 0;
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(_isReviewed
+          content: Text(wasReviewed
               ? "Review updated successfully!"
               : "Review submitted successfully!"),
         ),
@@ -244,7 +216,7 @@ class _ReviewPageState extends State<ReviewPage> {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text('Error submitting: $e')));
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 

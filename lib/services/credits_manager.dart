@@ -1,48 +1,42 @@
-// lib/services/credits_manager.dart
-
-import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'api_client.dart';
 
 class CreditsManager {
-  static final _db = FirebaseFirestore.instance;
+  static User? get _user => FirebaseAuth.instance.currentUser;
 
-  /// Returns a stream of the user's current credits.
-  static Stream<int> getCreditsStream() {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) {
-      return Stream.value(0);
+  static Future<int> getCredits() async {
+    final user = _user;
+    if (user == null) return 0;
+
+    final data = await ApiClient.getJson('/users/${user.uid}/wallet') as Map<String, dynamic>;
+    return (data['credits'] as num? ?? 0).toInt();
+  }
+
+  static Stream<int> getCreditsStream() async* {
+    while (true) {
+      yield await getCredits();
+      await Future<void>.delayed(const Duration(seconds: 5));
     }
-
-    //  Return a real stream from Firestore
-    return _db.collection('users').doc(uid).snapshots().map((doc) {
-      if (!doc.exists || doc.data() == null) {
-        return 0;
-      }
-      // Read the 'credits' field, default to 0 if it's null
-      return (doc.data()!['credits'] as num?)?.toInt() ?? 0;
-    });
   }
 
-  /// Adds a specified amount of credits to the user's account.
   static Future<void> addCredits(int amount) async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) return;
-
-    final docRef = _db.collection('users').doc(uid);
-
-    //  Atomically add the value to the 'credits' field
-    await docRef.update({'credits': FieldValue.increment(amount)});
+    final user = _user;
+    if (user == null) return;
+    await ApiClient.postJson('/users/${user.uid}/credits/add', {'amount': amount});
   }
 
-  /// Spends a specified amount of credits.
   static Future<void> spendCredits(int amount) async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) return;
+    final user = _user;
+    if (user == null) return;
+    await ApiClient.postJson('/users/${user.uid}/credits/spend', {'amount': amount});
+  }
 
-    final docRef = _db.collection('users').doc(uid);
-
-    // Atomically subtract the value
-    await docRef.update({'credits': FieldValue.increment(-amount)});
+  static Future<void> convertCredits({required int credits, required double money}) async {
+    final user = _user;
+    if (user == null) return;
+    await ApiClient.postJson('/users/${user.uid}/credits/convert', {
+      'credits': credits,
+      'money': money,
+    });
   }
 }

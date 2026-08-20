@@ -2,8 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/credits_manager.dart';
 import '../services/wallet_manager.dart';
 import '../models/constants.dart';
@@ -27,48 +25,20 @@ class _CreditsPageState extends State<CreditsPage> {
       _isConverting = true;
     });
 
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) {
-      _showError('You are not logged in.');
-      setState(() => _isConverting = false);
-      return;
-    }
-
-    final docRef = FirebaseFirestore.instance.collection('users').doc(uid);
-
     try {
-      await FirebaseFirestore.instance.runTransaction((transaction) async {
-        final snapshot = await transaction.get(docRef);
-
-        if (!snapshot.exists || snapshot.data() == null) {
-          throw Exception("User document does not exist!");
-        }
-
-        final currentCredits =
-            (snapshot.data()!['credits'] as num?)?.toInt() ?? 0;
-        final currentWallet =
-            (snapshot.data()!['walletBalance'] as num?)?.toDouble() ?? 0.0;
-
-        if (currentCredits < creditsToConvert) {
-          throw Exception("Not enough credits to convert.");
-        }
-
-        final newCredits = currentCredits - creditsToConvert;
-        final newWallet = currentWallet + moneyToReceive;
-
-        transaction.update(docRef, {
-          'credits': newCredits,
-          'walletBalance': newWallet,
-        });
-      });
-
+      await CreditsManager.convertCredits(
+        credits: creditsToConvert,
+        money: moneyToReceive,
+      );
       _showSuccess('Successfully added ₹$moneyToReceive to your wallet.');
     } catch (e) {
       _showError(e.toString());
     } finally {
-      setState(() {
-        _isConverting = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isConverting = false;
+        });
+      }
     }
   }
 

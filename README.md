@@ -67,4 +67,36 @@ flutter pub get
 flutter run
 ```
 
-When you are ready to replace Firestore-backed booking, wallet, review, and history screens, add Flutter HTTP calls to the backend API and migrate each feature one at a time.
+The Flutter app now sends booking, wallet, credits, and user review data to the MySQL backend API instead of Firestore.
+
+### Running Flutter With The Backend
+
+Start the backend first:
+
+```bash
+cd backend
+npm install
+cp .env.example .env
+# edit .env with your MySQL username/password
+npm run dev
+```
+
+Create the MySQL tables before using the app:
+
+```bash
+mysql -u root -p < backend/db/schema.sql
+```
+
+For desktop/web Flutter runs, the default backend URL is:
+
+```text
+http://localhost:3000
+```
+
+For an Android emulator, run Flutter with:
+
+```bash
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000
+```
+
+For a physical phone, replace the host with your laptop's local network IP address.

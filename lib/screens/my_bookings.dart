@@ -3,8 +3,7 @@
 import 'package:flutter/material.dart';
 import 'homepage.dart';
 import 'review.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../services/booking_service.dart';
 import 'package:syncfusion_flutter_barcodes/barcodes.dart';
 
 class MyBookingsPage extends StatefulWidget {
@@ -15,7 +14,19 @@ class MyBookingsPage extends StatefulWidget {
 }
 
 class _MyBookingsPageState extends State<MyBookingsPage> {
-  final user = FirebaseAuth.instance.currentUser;
+  late Future<List<Map<String, dynamic>>> _bookingsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _bookingsFuture = BookingService.getBookings();
+  }
+
+  void _refreshBookings() {
+    setState(() {
+      _bookingsFuture = BookingService.getBookings();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,15 +53,8 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
           ),
         ],
       ),
-
-      // Fetch bookings from Firestore
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('users')
-            .doc(user?.uid)
-            .collection('bookings')
-            .orderBy('createdAt', descending: true)
-            .snapshots(),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: _bookingsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
@@ -58,7 +62,18 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
             );
           }
 
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                'Could not load bookings: ${snapshot.error}',
+                style: const TextStyle(color: Colors.white, fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+            );
+          }
+
+          final bookings = snapshot.data ?? [];
+          if (bookings.isEmpty) {
             return const Center(
               child: Text(
                 "No bookings yet",
@@ -67,79 +82,81 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
             );
           }
 
-          final bookings = snapshot.data!.docs;
+          return RefreshIndicator(
+            onRefresh: () async => _refreshBookings(),
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: bookings.length,
+              itemBuilder: (context, index) {
+                final booking = bookings[index];
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: bookings.length,
-            itemBuilder: (context, index) {
-              final booking = bookings[index].data() as Map<String, dynamic>;
-
-              return GestureDetector(
-                onTap: () async {
-                  await showModalBottomSheet(
-                    context: context,
-                    backgroundColor: Colors.black.withOpacity(0.9),
-                    shape: const RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.vertical(top: Radius.circular(24)),
-                    ),
-                    builder: (_) => BookingDetailsSheet(
-                      booking: booking,
-                      bookingId: bookings[index].id,
-                    ),
-                  );
-                },
-                child: Container(
-                  margin: const EdgeInsets.only(bottom: 20),
-                  height: 220,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.redAccent.withOpacity(0.5),
-                        blurRadius: 12,
-                        offset: const Offset(0, 6),
+                return GestureDetector(
+                  onTap: () async {
+                    await showModalBottomSheet(
+                      context: context,
+                      backgroundColor: Colors.black.withOpacity(0.9),
+                      shape: const RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.vertical(top: Radius.circular(24)),
                       ),
-                    ],
-                    image: DecorationImage(
-                      image: NetworkImage(booking['posterUrl']),
-                      fit: BoxFit.cover,
-                      colorFilter: ColorFilter.mode(
-                          Colors.black.withOpacity(0.45), BlendMode.darken),
+                      builder: (_) => BookingDetailsSheet(
+                        booking: booking,
+                        bookingId: booking['bookingId'].toString(),
+                        onReviewed: _refreshBookings,
+                      ),
+                    );
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 20),
+                    height: 220,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.redAccent.withOpacity(0.5),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                      image: DecorationImage(
+                        image: NetworkImage(booking['posterUrl'] ?? ''),
+                        fit: BoxFit.cover,
+                        colorFilter: ColorFilter.mode(
+                            Colors.black.withOpacity(0.45), BlendMode.darken),
+                      ),
+                    ),
+                    alignment: Alignment.bottomLeft,
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          booking['movieTitle'] ?? '',
+                          style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          "${booking['cinemaName'] ?? ''}, ${booking['cinemaLocation'] ?? ''}",
+                          style: const TextStyle(
+                              color: Colors.white70, fontSize: 14),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          booking['showTime'] ?? "Date not available",
+                          style: const TextStyle(
+                              color: Colors.white54, fontSize: 13),
+                        ),
+                      ],
                     ),
                   ),
-                  alignment: Alignment.bottomLeft,
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        booking['movieTitle'],
-                        style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        "${booking['cinemaName'] ?? ''}, ${booking['cinemaLocation'] ?? ''}",
-                        style: const TextStyle(
-                            color: Colors.white70, fontSize: 14),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        booking['showTime'] ?? "Date not available",
-                        style: const TextStyle(
-                            color: Colors.white54, fontSize: 13),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           );
         },
       ),
@@ -150,11 +167,13 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
 class BookingDetailsSheet extends StatelessWidget {
   final Map<String, dynamic> booking;
   final String bookingId;
+  final VoidCallback onReviewed;
 
   const BookingDetailsSheet({
     super.key,
     required this.booking,
     required this.bookingId,
+    required this.onReviewed,
   });
 
   @override
@@ -172,21 +191,17 @@ class BookingDetailsSheet extends StatelessWidget {
                   color: Colors.white24,
                   borderRadius: BorderRadius.circular(3)),
             ),
-
-            // Poster
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
               child: Image.network(
-                booking['posterUrl'],
+                booking['posterUrl'] ?? '',
                 height: 200,
                 fit: BoxFit.cover,
               ),
             ),
             const SizedBox(height: 16),
-
-            // Title
             Text(
-              booking['movieTitle'],
+              booking['movieTitle'] ?? '',
               style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
@@ -194,8 +209,6 @@ class BookingDetailsSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 14),
-
-            // Combined Cinema Info
             infoRow(
               "📍 Cinema",
               "${booking['cinemaName'] ?? "Unknown Cinema"}, ${booking['cinemaLocation'] ?? "Location not available"}",
@@ -205,7 +218,7 @@ class BookingDetailsSheet extends StatelessWidget {
                 "💺 Seats",
                 (booking['selectedSeats'] != null &&
                         booking['selectedSeats'].isNotEmpty)
-                    ? booking['selectedSeats'].join(", ")
+                    ? List<String>.from(booking['selectedSeats']).join(", ")
                     : "Not selected"),
             infoRow(
                 "💰 Paid",
@@ -213,8 +226,6 @@ class BookingDetailsSheet extends StatelessWidget {
                     ? "Rs. ${booking['totalPrice']}"
                     : "Not available"),
             const SizedBox(height: 14),
-
-            // QR Code Section
             Center(
               child: Container(
                 padding: const EdgeInsets.all(20),
@@ -234,7 +245,6 @@ class BookingDetailsSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-
             Text(
               "Booking ID: $bookingId",
               style: const TextStyle(
@@ -244,68 +254,16 @@ class BookingDetailsSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 18),
-
-            // --- Review Button Logic ---
             SizedBox(
               width: double.infinity,
               child: Builder(
                 builder: (context) {
-                  DateTime? showTime;
-
-                  // Handle Firestore Timestamp or String
-                  final rawTime = booking['showTime'];
-                  if (rawTime is Timestamp) {
-                    showTime = rawTime.toDate();
-                  } else if (rawTime is String) {
-                    try {
-                      final regex = RegExp(
-                          r'([A-Za-z]{3}), ([A-Za-z]{3}) (\d{1,2}) - (\d{1,2}):(\d{2}) ([APMapm]{2})');
-                      final match = regex.firstMatch(rawTime);
-
-                      if (match != null) {
-                        final monthAbbrev = match.group(2)!; // Oct
-                        final day = int.parse(match.group(3)!); // 31
-                        final hour = int.parse(match.group(4)!); // 1
-                        final minute = int.parse(match.group(5)!); // 00
-                        final period = match.group(6)!.toUpperCase(); // PM
-
-                        // Map short month to number
-                        const months = {
-                          'Jan': 1,
-                          'Feb': 2,
-                          'Mar': 3,
-                          'Apr': 4,
-                          'May': 5,
-                          'Jun': 6,
-                          'Jul': 7,
-                          'Aug': 8,
-                          'Sep': 9,
-                          'Oct': 10,
-                          'Nov': 11,
-                          'Dec': 12
-                        };
-                        final month = months[monthAbbrev] ?? 1;
-
-                        // Adjust 12-hour to 24-hour format
-                        int hour24 = hour % 12;
-                        if (period == 'PM') hour24 += 12;
-
-                        // Use current year
-                        final now = DateTime.now();
-                        showTime =
-                            DateTime(now.year, month, day, hour24, minute);
-                      }
-                    } catch (e) {
-                      print('❌ Date parse failed for $rawTime → $e');
-                    }
-                  }
-
+                  final showTime = _parseShowTime(booking['showTime']);
                   final now = DateTime.now();
                   final hasShowStarted =
                       showTime != null && now.isAfter(showTime);
                   final isReviewed = booking['reviewed'] == true;
-
-                  final isButtonEnabled = hasShowStarted;
+                  final isButtonEnabled = hasShowStarted && !isReviewed;
 
                   return ElevatedButton(
                     style: ButtonStyle(
@@ -336,16 +294,9 @@ class BookingDetailsSheet extends StatelessWidget {
                               ),
                             );
                             if (result == true) {
-                              final user = FirebaseAuth.instance.currentUser;
-                              if (user != null) {
-                                await FirebaseFirestore.instance
-                                    .collection('users')
-                                    .doc(user.uid)
-                                    .collection('bookings')
-                                    .doc(bookingId)
-                                    .update({'reviewed': true});
-                              }
-                              Navigator.pop(context);
+                              await BookingService.markReviewed(bookingId);
+                              onReviewed();
+                              if (context.mounted) Navigator.pop(context);
                             }
                           }
                         : null,
@@ -365,12 +316,47 @@ class BookingDetailsSheet extends StatelessWidget {
                 },
               ),
             ),
-
             const SizedBox(height: 12),
           ],
         ),
       ),
     );
+  }
+
+  DateTime? _parseShowTime(dynamic rawTime) {
+    if (rawTime is! String) return null;
+    try {
+      final regex = RegExp(
+          r'([A-Za-z]{3}), ([A-Za-z]{3}) (\d{1,2}) - (\d{1,2}):(\d{2}) ([APMapm]{2})');
+      final match = regex.firstMatch(rawTime);
+      if (match == null) return null;
+
+      const months = {
+        'Jan': 1,
+        'Feb': 2,
+        'Mar': 3,
+        'Apr': 4,
+        'May': 5,
+        'Jun': 6,
+        'Jul': 7,
+        'Aug': 8,
+        'Sep': 9,
+        'Oct': 10,
+        'Nov': 11,
+        'Dec': 12
+      };
+      final month = months[match.group(2)!] ?? 1;
+      final day = int.parse(match.group(3)!);
+      final hour = int.parse(match.group(4)!);
+      final minute = int.parse(match.group(5)!);
+      final period = match.group(6)!.toUpperCase();
+      var hour24 = hour % 12;
+      if (period == 'PM') hour24 += 12;
+      final now = DateTime.now();
+      return DateTime(now.year, month, day, hour24, minute);
+    } catch (_) {
+      return null;
+    }
   }
 
   Widget infoRow(String icon, String value) {

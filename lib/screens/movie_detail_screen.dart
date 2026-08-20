@@ -4,7 +4,7 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 import '../api_services/tmdb_api.dart';
 import '../models/movie_detail_model.dart';
 import 'select_location_screen.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../services/api_client.dart';
 
 class MovieDetailScreen extends StatelessWidget {
   final int movieId;
@@ -311,12 +311,9 @@ class MovieDetailScreen extends StatelessWidget {
 
                     const SizedBox(height: 6),
 
-                    // --- Firebase User Reviews (show username + comments) ---
-                    StreamBuilder<QuerySnapshot>(
-                      stream: FirebaseFirestore.instance
-                          .collection('reviews')
-                          .where('movieId', isEqualTo: movie.id)
-                          .snapshots(),
+                    // --- User Reviews from MySQL backend ---
+                    FutureBuilder<dynamic>(
+                      future: ApiClient.getJson('/movies/${movie.id}/reviews'),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
@@ -326,53 +323,32 @@ class MovieDetailScreen extends StatelessWidget {
                           );
                         }
 
-                        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                          // if no firebase reviews, nothing more to show
+                        if (snapshot.hasError || !snapshot.hasData) {
                           return const SizedBox.shrink();
                         }
 
-                        final firebaseDocs = snapshot.data!.docs;
+                        final userReviews = (snapshot.data as List<dynamic>)
+                            .map((item) => Map<String, dynamic>.from(item as Map))
+                            .toList();
+
+                        if (userReviews.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
 
                         return ListView.builder(
                           physics: const NeverScrollableScrollPhysics(),
                           shrinkWrap: true,
-                          itemCount: firebaseDocs.length,
+                          itemCount: userReviews.length,
                           itemBuilder: (context, index) {
-                            final reviewData = firebaseDocs[index].data()
-                                as Map<String, dynamic>;
-                            final userId = reviewData['userId'] as String?;
+                            final reviewData = userReviews[index];
+                            final username =
+                                (reviewData['username'] ?? 'Anonymous').toString();
                             final comment =
                                 (reviewData['comments'] ?? '').toString();
 
-                            // fetch username from /users/{userId}
-                            return FutureBuilder<DocumentSnapshot>(
-                              future: (userId != null && userId.isNotEmpty)
-                                  ? FirebaseFirestore.instance
-                                      .collection('users')
-                                      .doc(userId)
-                                      .get()
-                                  // ignore: null_argument_to_non_null_type
-                                  : Future.value(null),
-                              builder: (context, userSnapshot) {
-                                String username = 'Anonymous';
-                                if (userSnapshot.hasData &&
-                                    userSnapshot.data != null &&
-                                    userSnapshot.data!.exists) {
-                                  final userData = userSnapshot.data!.data()
-                                      as Map<String, dynamic>?;
-                                  if (userData != null) {
-                                    username = (userData['username'] ??
-                                            userData['username'] ??
-                                            'Anonymous')
-                                        .toString();
-                                  }
-                                }
-
-                                return _ExpandableCommentCard(
-                                  username: username,
-                                  comment: comment,
-                                );
-                              },
+                            return _ExpandableCommentCard(
+                              username: username,
+                              comment: comment,
                             );
                           },
                         );
@@ -389,7 +365,7 @@ class MovieDetailScreen extends StatelessWidget {
   }
 }
 
-/// Firebase user review card — matches TMDB review UI
+/// User review card - matches TMDB review UI
 class _ExpandableCommentCard extends StatelessWidget {
   final String username;
   final String comment;

@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:syncfusion_flutter_barcodes/barcodes.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../services/booking_service.dart';
 import 'my_bookings.dart';
 
 class TicketPage extends StatefulWidget {
@@ -63,40 +62,25 @@ class _TicketPageState extends State<TicketPage> {
     bookingId = 'BK${DateTime.now().millisecondsSinceEpoch}';
   }
 
-  // Save booking to Firestore
-  Future<void> saveBookingToFirestore() async {
-    final user = FirebaseAuth.instance.currentUser;
-
-    if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please sign in first')),
-      );
-      return;
-    }
-
+  // Save booking to the MySQL backend.
+  Future<void> saveBookingToMySql() async {
     setState(() => isSaving = true);
 
     try {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .collection('bookings')
-          .doc(bookingId)
-          .set({
-        'movieId': widget.movieId,
-        'movieTitle': widget.movieTitle,
-        'cinemaName': widget.cinemaName,
-        'cinemaLocation': widget.cinemaLocation,
-        'showTime': widget.showTime,
-        'selectedSeats': widget.selectedSeats,
-        'totalPrice': widget.totalPrice,
-        'posterUrl': posterUrl ?? '',
-        'bookingId': bookingId,
-        'castList': widget.castList,
-        'reviewed': false,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+      await BookingService.saveTicketBooking(
+        bookingId: bookingId,
+        movieId: widget.movieId,
+        movieTitle: widget.movieTitle,
+        cinemaName: widget.cinemaName,
+        cinemaLocation: widget.cinemaLocation,
+        showTime: widget.showTime,
+        selectedSeats: widget.selectedSeats,
+        totalPrice: widget.totalPrice,
+        posterUrl: posterUrl ?? '',
+        castList: widget.castList,
+      );
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Booking saved successfully!')),
       );
@@ -106,11 +90,12 @@ class _TicketPageState extends State<TicketPage> {
         MaterialPageRoute(builder: (context) => const MyBookingsPage()),
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error saving booking: $e')),
       );
     } finally {
-      setState(() => isSaving = false);
+      if (mounted) setState(() => isSaving = false);
     }
   }
 
@@ -301,7 +286,7 @@ class _TicketPageState extends State<TicketPage> {
               ),
       ),
 
-      // Bottom Button → Save to Firestore
+      // Bottom Button -> Save to MySQL
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.only(bottom: 30.0, right: 15, left: 15),
         child: ElevatedButton(
@@ -313,7 +298,7 @@ class _TicketPageState extends State<TicketPage> {
             ),
             padding: const EdgeInsets.symmetric(vertical: 14),
           ),
-          onPressed: isSaving ? null : saveBookingToFirestore,
+          onPressed: isSaving ? null : saveBookingToMySql,
           child: isSaving
               ? const CircularProgressIndicator(color: Colors.white)
               : const Text(
