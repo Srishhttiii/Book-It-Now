@@ -10,7 +10,6 @@ class BrowseByGenre extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Section title
         Padding(
           padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
           child: Text(
@@ -24,8 +23,6 @@ class BrowseByGenre extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 20),
-
-        // Horizontal list of genres inside decorated container
         Container(
           height: 60,
           margin: const EdgeInsets.symmetric(horizontal: 10),

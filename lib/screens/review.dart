@@ -47,7 +47,6 @@ class _ReviewPageState extends State<ReviewPage> {
   String? posterUrl;
   List<String> castList = [];
 
-  // dropdown options
   final List<String> _storyoptions = [
     'Select',
     'Did not blink even once.',

@@ -1,12 +1,10 @@
 // show_timing_selector.dart
-
 // ignore_for_file: depend_on_referenced_packages, file_names
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Add 'intl: ^0.18.1' to your pubspec.yaml if not already there
+import 'package:intl/intl.dart';
 import '../../models/constants.dart';
 
-// Define the signature for the callback function
 typedef DateSelectionCallback = void Function(DateTime selectedDate);
 
 class ShowTimingSelector extends StatefulWidget {
@@ -31,7 +29,7 @@ class _ShowTimingSelectorState extends State<ShowTimingSelector> {
   void initState() {
     super.initState();
     _generateNextSevenDays();
-    // Trigger the initial callback with today's date
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_nextSevenDays.isNotEmpty) {
         widget.onDateSelected(_nextSevenDays[_selectedDateIndex]);
@@ -52,21 +50,19 @@ class _ShowTimingSelectorState extends State<ShowTimingSelector> {
     } else if (date.day == DateTime.now().add(const Duration(days: 1)).day) {
       return 'Tomorrow';
     }
-    return DateFormat('EEE').format(date); // e.g., 'Mon', 'Tue'
+    return DateFormat('EEE').format(date);
   }
 
   String _formatDate(DateTime date) {
-    return DateFormat('dd').format(date); // e.g., '25'
+    return DateFormat('dd').format(date);
   }
 
   String _formatMonth(DateTime date) {
-    return DateFormat('MMM').format(date); // e.g., 'Sep'
+    return DateFormat('MMM').format(date);
   }
 
   @override
   Widget build(BuildContext context) {
-    // Note: movieData and priceRange must be defined in constants.dart
-
     final movieIndexData = movieData[widget.movieIndex % movieData.length];
 
     return Column(
@@ -124,8 +120,7 @@ class _ShowTimingSelectorState extends State<ShowTimingSelector> {
                             color: _selectedDateIndex == index
                                 ? Colors.white
                                 : const Color.fromARGB(255, 19, 19, 19),
-                            fontFamily:
-                                primaryFont, // Replace with primaryFont variable
+                            fontFamily: primaryFont,
                             fontSize: 20,
                             fontWeight: FontWeight.bold),
                       ),
@@ -152,14 +147,12 @@ class _ShowTimingSelectorState extends State<ShowTimingSelector> {
               const Text(
                 "Languages: ",
                 style: TextStyle(
-                    color: Color.fromARGB(255, 255, 255, 255),
-                    fontSize: 14), // Replace with primaryFont
+                    color: Color.fromARGB(255, 255, 255, 255), fontSize: 14),
               ),
               Text(
                 movieIndexData['language']!,
                 style: const TextStyle(
-                    color: Color.fromARGB(255, 255, 255, 255),
-                    fontSize: 14), // Replace with primaryFont
+                    color: Color.fromARGB(255, 255, 255, 255), fontSize: 14),
               ),
             ],
           ),

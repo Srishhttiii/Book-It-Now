@@ -30,8 +30,6 @@ class MovieDetailScreen extends StatelessWidget {
           elevation: 0,
           iconTheme: const IconThemeData(color: Colors.white),
         ),
-
-        // --- Bottom Proceed Button ---
         bottomNavigationBar: FutureBuilder<MovieDetail>(
           future: ApiService().fetchMovieDetails(movieId),
           builder: (context, snapshot) {
@@ -83,8 +81,6 @@ class MovieDetailScreen extends StatelessWidget {
             );
           },
         ),
-
-        // --- Main Body ---
         body: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
@@ -137,7 +133,6 @@ class MovieDetailScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-
                     Padding(
                       padding: const EdgeInsets.only(
                           left: 15.0, right: 15.0, top: 20, bottom: 5),
@@ -149,7 +144,6 @@ class MovieDetailScreen extends StatelessWidget {
                             color: Colors.white),
                       ),
                     ),
-
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12.0),
                       child: Row(
@@ -164,9 +158,7 @@ class MovieDetailScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-
                     const SizedBox(height: 10),
-
                     Padding(
                       padding: const EdgeInsets.only(
                           left: 20.0, right: 20.0, top: 12),
@@ -180,7 +172,6 @@ class MovieDetailScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-
                     const Padding(
                       padding:
                           EdgeInsets.symmetric(horizontal: 12.0, vertical: 30),
@@ -240,7 +231,6 @@ class MovieDetailScreen extends StatelessWidget {
                         },
                       ),
                     ),
-
                     const Padding(
                       padding:
                           EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),
@@ -299,10 +289,7 @@ class MovieDetailScreen extends StatelessWidget {
                           );
                         },
                       ),
-
                     const SizedBox(height: 6),
-
-                    // --- User Reviews from MySQL backend ---
                     FutureBuilder<dynamic>(
                       future: ApiClient.getJson('/movies/${movie.id}/reviews'),
                       builder: (context, snapshot) {
@@ -347,7 +334,6 @@ class MovieDetailScreen extends StatelessWidget {
                         );
                       },
                     ),
-
                     const SizedBox(height: 12),
                   ],
                 ),
@@ -358,7 +344,6 @@ class MovieDetailScreen extends StatelessWidget {
   }
 }
 
-/// User review card - matches TMDB review UI
 class _ExpandableCommentCard extends StatelessWidget {
   final String username;
   final String comment;
@@ -381,7 +366,6 @@ class _ExpandableCommentCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Username like TMDB Author
             Text(
               username,
               style: const TextStyle(
@@ -390,8 +374,6 @@ class _ExpandableCommentCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 5),
-
-            // Full comment text — no truncation
             Text(
               comment.isNotEmpty ? comment : "(No comment)",
               style: const TextStyle(color: Colors.white),

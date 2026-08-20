@@ -14,7 +14,7 @@ class CreditsPage extends StatefulWidget {
 }
 
 class _CreditsPageState extends State<CreditsPage> {
-  // Conversion rates (500 = 100)
+  // Conversion rates (500 credits = 100 rs)
   final int creditsToConvert = 500;
   final double moneyToReceive = 100.0;
 
@@ -91,17 +91,10 @@ class _CreditsPageState extends State<CreditsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // --- 1. Credit Balance Card ---
               _buildCreditBalanceCard(CreditsManager.getCreditsStream()),
-
               const SizedBox(height: 20),
-
-              // --- 2. Wallet Balance Row ---
               _buildWalletBalanceRow(WalletManager.getBalanceStream()),
-
               const SizedBox(height: 32),
-
-              // --- 3. Instructions ---
               Text(
                 "How to Earn Credits ?",
                 style: TextStyle(
@@ -122,8 +115,6 @@ class _CreditsPageState extends State<CreditsPage> {
                 text: "For every 500 credits, you can redeem ₹100.",
               ),
               const SizedBox(height: 32),
-
-              // --- 4. Conversion Button Section ---
               StreamBuilder<int>(
                 stream: CreditsManager.getCreditsStream(),
                 builder: (context, snapshot) {
@@ -187,7 +178,6 @@ class _CreditsPageState extends State<CreditsPage> {
     );
   }
 
-  // --- Credit Balance Card Widget ---
   Widget _buildCreditBalanceCard(Stream<int> stream) {
     return Container(
       width: double.infinity,
@@ -251,7 +241,6 @@ class _CreditsPageState extends State<CreditsPage> {
     );
   }
 
-  // --- Wallet Balance Card Widget ---
   Widget _buildWalletBalanceRow(Stream<double> stream) {
     return Container(
       decoration: BoxDecoration(
@@ -298,7 +287,6 @@ class _CreditsPageState extends State<CreditsPage> {
     );
   }
 
-  // --- Rule Card Widget ---
   Widget _buildRuleCard({required IconData icon, required String text}) {
     return Container(
       padding: const EdgeInsets.all(16),

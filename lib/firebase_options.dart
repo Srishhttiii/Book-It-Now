@@ -85,5 +85,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'book-it-now25.firebasestorage.app',
     measurementId: 'G-YL83HWM8L5',
   );
-
 }

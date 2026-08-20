@@ -128,9 +128,6 @@ class _HomePageScreenState extends State<HomePageScreen> {
   }
 }
 
-// ------------------------
-// Location Selection Dialog
-// ------------------------
 class LocationDialog extends StatelessWidget {
   final String currentLocation;
   const LocationDialog({super.key, required this.currentLocation});
@@ -140,8 +137,7 @@ class LocationDialog extends StatelessWidget {
     final locations = ['Mumbai', 'Delhi', 'Chennai', 'Kolkata'];
 
     return AlertDialog(
-      backgroundColor:
-          const Color(0xFF1E1E1E), // 🔹 Dark premium background color
+      backgroundColor: const Color(0xFF1E1E1E),
       title: const Text(
         'Select Location',
         style: TextStyle(color: Colors.white),
@@ -171,9 +167,6 @@ class LocationDialog extends StatelessWidget {
   }
 }
 
-// ------------------------
-// Drawer with Firebase User Info
-// ------------------------
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
 

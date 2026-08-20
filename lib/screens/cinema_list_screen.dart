@@ -1,5 +1,4 @@
 // cinema_list.dart (UPDATED to StatefulWidget)
-
 // ignore_for_file: depend_on_referenced_packages
 
 import 'package:flutter/material.dart';
@@ -47,7 +46,6 @@ class _CinemaListScreenState extends State<CinemaListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Determine the formatted date/day string to pass to the next screen
     final selectedDayAndDate = DateFormat('EEE, MMM dd').format(_selectedDate);
 
     return Scaffold(
@@ -64,17 +62,12 @@ class _CinemaListScreenState extends State<CinemaListScreen> {
               fontFamily: secondaryFonts),
         ),
       ),
-
-      // Wrap the content in a Column to add the date selector on top
       body: Column(
         children: [
-          // 1. SHOW TIMING SELECTOR
           ShowTimingSelector(
             movieIndex: widget.movieId,
             onDateSelected: _handleDateSelected,
           ),
-
-          // 2. CINEMA LIST
           Expanded(
             child: widget.cinemas.isEmpty
                 ? Center(
@@ -139,8 +132,6 @@ class _CinemaListScreenState extends State<CinemaListScreen> {
                                   ),
                                 ),
                               const SizedBox(height: 10),
-
-                              // Timings row
                               Padding(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 17.0),

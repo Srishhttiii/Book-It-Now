@@ -20,7 +20,6 @@ class SelectLocationScreen extends StatelessWidget {
     required this.castList,
   });
 
-  // Adds an 'image' path for each city
   final List<Map<String, dynamic>> cities = const [
     {
       'name': 'Delhi',
@@ -75,30 +74,29 @@ class SelectLocationScreen extends StatelessWidget {
       final cinemas = elements
           .where((e) => e['tags'] != null && e['tags']['name'] != null)
           .map<Map<String, String>>((e) {
-            final tags = e['tags'] as Map<String, dynamic>;
+        final tags = e['tags'] as Map<String, dynamic>;
 
-            final parts = <String>[];
-            if (tags['addr:street'] != null) {
-              parts.add(tags['addr:street'].toString());
-            }
-            if (tags['addr:suburb'] != null) {
-              parts.add(tags['addr:suburb'].toString());
-            }
-            if (tags['addr:district'] != null) {
-              parts.add(tags['addr:district'].toString());
-            }
-            if (tags['addr:city'] != null) {
-              parts.add(tags['addr:city'].toString());
-            }
+        final parts = <String>[];
+        if (tags['addr:street'] != null) {
+          parts.add(tags['addr:street'].toString());
+        }
+        if (tags['addr:suburb'] != null) {
+          parts.add(tags['addr:suburb'].toString());
+        }
+        if (tags['addr:district'] != null) {
+          parts.add(tags['addr:district'].toString());
+        }
+        if (tags['addr:city'] != null) {
+          parts.add(tags['addr:city'].toString());
+        }
 
-            final location = parts.isEmpty ? cityName : parts.join(', ');
+        final location = parts.isEmpty ? cityName : parts.join(', ');
 
-            return {
-              'name': tags['name'].toString(),
-              'location': location,
-            };
-          })
-          .toList();
+        return {
+          'name': tags['name'].toString(),
+          'location': location,
+        };
+      }).toList();
 
       return cinemas.isEmpty ? fallbackCinemas : cinemas;
     } catch (_) {
@@ -114,7 +112,10 @@ class SelectLocationScreen extends StatelessWidget {
         {'name': 'Cinepolis DLF Avenue', 'location': 'Saket, Delhi'},
       ],
       'Mumbai': [
-        {'name': 'PVR ICON Phoenix Palladium', 'location': 'Lower Parel, Mumbai'},
+        {
+          'name': 'PVR ICON Phoenix Palladium',
+          'location': 'Lower Parel, Mumbai'
+        },
         {'name': 'INOX R-City', 'location': 'Ghatkopar, Mumbai'},
         {'name': 'Metro INOX Cinema', 'location': 'Marine Lines, Mumbai'},
       ],
