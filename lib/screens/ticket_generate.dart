@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:syncfusion_flutter_barcodes/barcodes.dart';
-import '../services/app_config.dart';
+import '../services/api_client.dart';
 import '../services/booking_service.dart';
 import 'my_bookings.dart';
 
@@ -45,16 +43,17 @@ class _TicketPageState extends State<TicketPage> {
   }
 
   Future<void> fetchMoviePoster() async {
-    const apiKey = AppConfig.tmdbApiKey;
-    final url = Uri.parse(
-      'https://api.themoviedb.org/3/movie/${widget.movieId}?api_key=$apiKey',
-    );
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
+    try {
+      final data = await ApiClient.getJson('/tmdb/movie/${widget.movieId}')
+          as Map<String, dynamic>;
+      if (!mounted) return;
       setState(() {
         posterUrl = 'https://image.tmdb.org/t/p/w500/${data['poster_path']}';
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        posterUrl = '';
       });
     }
   }

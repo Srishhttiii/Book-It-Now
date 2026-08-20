@@ -4,6 +4,9 @@ require('dotenv').config();
 
 const pool = require('./db');
 
+const tmdbApiKey = process.env.TMDB_API_KEY || '448926300571dc148105d6cdaddc2b0e';
+const tmdbBaseUrl = 'https://api.themoviedb.org/3';
+
 const app = express();
 const port = Number(process.env.PORT || 3000);
 
@@ -93,6 +96,92 @@ function mapReview(row) {
     updatedAt: row.updated_at
   };
 }
+
+
+async function fetchTmdb(path, params = {}) {
+  const url = new URL(`${tmdbBaseUrl}${path}`);
+  url.searchParams.set('api_key', tmdbApiKey);
+
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== null && value !== '') {
+      url.searchParams.set(key, value);
+    }
+  }
+
+  const response = await fetch(url);
+  const body = await response.text();
+
+  if (!response.ok) {
+    const error = new Error(`TMDB request failed with status ${response.status}`);
+    error.statusCode = response.status;
+    error.details = body;
+    throw error;
+  }
+
+  return body ? JSON.parse(body) : null;
+}
+
+app.get('/tmdb/movie/:movieId', async (req, res, next) => {
+  try {
+    const data = await fetchTmdb(`/movie/${req.params.movieId}`, {
+      language: req.query.language || 'en-US'
+    });
+    res.json(data);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/tmdb/movie/:movieId/details', async (req, res, next) => {
+  try {
+    const movieId = req.params.movieId;
+    const [detail, credits, reviews] = await Promise.all([
+      fetchTmdb(`/movie/${movieId}`, { language: 'en-US' }),
+      fetchTmdb(`/movie/${movieId}/credits`),
+      fetchTmdb(`/movie/${movieId}/reviews`)
+    ]);
+
+    res.json({ detail, credits, reviews });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/tmdb/movie/:category/list', async (req, res, next) => {
+  try {
+    const data = await fetchTmdb(`/movie/${req.params.category}`, {
+      language: 'en-US',
+      page: req.query.page || '1',
+      include_adult: 'false'
+    });
+    res.json(data);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/tmdb/discover/movie', async (req, res, next) => {
+  try {
+    const data = await fetchTmdb('/discover/movie', {
+      with_genres: req.query.with_genres,
+      sort_by: req.query.sort_by || 'popularity.desc',
+      page: req.query.page || '1',
+      include_adult: 'false'
+    });
+    res.json(data);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/tmdb/trending/movie/week', async (_req, res, next) => {
+  try {
+    const data = await fetchTmdb('/trending/movie/week');
+    res.json(data);
+  } catch (error) {
+    next(error);
+  }
+});
 
 app.get('/health', async (_req, res, next) => {
   try {

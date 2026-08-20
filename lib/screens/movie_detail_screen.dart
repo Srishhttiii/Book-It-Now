@@ -328,7 +328,8 @@ class MovieDetailScreen extends StatelessWidget {
                         }
 
                         final userReviews = (snapshot.data as List<dynamic>)
-                            .map((item) => Map<String, dynamic>.from(item as Map))
+                            .map((item) =>
+                                Map<String, dynamic>.from(item as Map))
                             .toList();
 
                         if (userReviews.isEmpty) {
@@ -342,7 +343,8 @@ class MovieDetailScreen extends StatelessWidget {
                           itemBuilder: (context, index) {
                             final reviewData = userReviews[index];
                             final username =
-                                (reviewData['username'] ?? 'Anonymous').toString();
+                                (reviewData['username'] ?? 'Anonymous')
+                                    .toString();
                             final comment =
                                 (reviewData['comments'] ?? '').toString();
 
