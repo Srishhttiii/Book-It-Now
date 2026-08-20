@@ -1,13 +1,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'app_config.dart';
 
 class ApiClient {
-  static const String baseUrl = String.fromEnvironment(
-    'API_BASE_URL',
-    defaultValue: 'http://localhost:3000',
-  );
-
-  static Uri uri(String path) => Uri.parse('$baseUrl$path');
+  static Uri uri(String path) => Uri.parse('${AppConfig.apiBaseUrl}$path');
 
   static Future<dynamic> getJson(String path) async {
     final response = await http.get(uri(path));

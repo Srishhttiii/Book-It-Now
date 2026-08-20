@@ -2,9 +2,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/movie_detail_model.dart';
 import '../models/movie_model.dart';
+import '../services/app_config.dart';
 
 class ApiService {
-  final String apiKey = "4bba6688b6ccd7f19cb0988863f028dc"; // Replace with your TMDB key
+  final String apiKey = AppConfig.tmdbApiKey;
   final String baseUrl = "https://api.themoviedb.org/3";
 
   /// Fetch upcoming movies from TMDb (future releases)

@@ -1,21 +1,14 @@
 Book It Now Flutter App
 =======================
 
-A Flutter movie-ticket booking app. The current app uses Firebase for authentication and Firestore-backed app data; this repository now also includes a starter backend for moving database-managed features to MySQL.
+A Flutter movie-ticket booking app. The app keeps Firebase Authentication for login, while bookings, wallet, credits, and user reviews are stored through the MySQL backend API.
 
 ## Repository
 
-This working copy is already connected to:
+This working copy is connected to your GitHub repository:
 
 ```text
-https://github.com/Sunidhi-Gautam/Book-It-Now-Flutter-App.git
-```
-
-To create a different GitHub repository, create the repo in GitHub first, then update the remote:
-
-```bash
-git remote set-url origin https://github.com/<your-user>/<new-repo>.git
-git push -u origin main
+https://github.com/Srishhttiii/Book-It-Now.git
 ```
 
 ## MySQL Backend
@@ -67,7 +60,7 @@ flutter pub get
 flutter run
 ```
 
-The Flutter app now sends booking, wallet, credits, and user review data to the MySQL backend API instead of Firestore.
+The Flutter app sends booking, wallet, credits, and user review data to the MySQL backend API instead of Firestore.
 
 ### Running Flutter With The Backend
 
@@ -93,10 +86,14 @@ For desktop/web Flutter runs, the default backend URL is:
 http://localhost:3000
 ```
 
-For an Android emulator, run Flutter with:
+For an Android emulator, the app automatically uses `http://10.0.2.2:3000`. For a physical phone, replace the host with your laptop's local network IP address:
 
 ```bash
-flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000
+flutter run --dart-define=API_BASE_URL=http://YOUR_LAPTOP_IP:3000
 ```
 
-For a physical phone, replace the host with your laptop's local network IP address.
+To use your own TMDB API key, run:
+
+```bash
+flutter run --dart-define=TMDB_API_KEY=YOUR_TMDB_KEY
+```

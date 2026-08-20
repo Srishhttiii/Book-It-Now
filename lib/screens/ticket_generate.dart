@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:syncfusion_flutter_barcodes/barcodes.dart';
+import '../services/app_config.dart';
 import '../services/booking_service.dart';
 import 'my_bookings.dart';
 
@@ -44,7 +45,7 @@ class _TicketPageState extends State<TicketPage> {
   }
 
   Future<void> fetchMoviePoster() async {
-    const apiKey = '4bba6688b6ccd7f19cb0988863f028dc';
+    const apiKey = AppConfig.tmdbApiKey;
     final url = Uri.parse(
       'https://api.themoviedb.org/3/movie/${widget.movieId}?api_key=$apiKey',
     );
