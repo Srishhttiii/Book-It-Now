@@ -34,6 +34,25 @@ async function ensureUser(connection, { firebaseUid, email = null, username = nu
   return rows[0];
 }
 
+function parseJsonList(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) return value;
+
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (_error) {
+      return value
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+  }
+
+  return [];
+}
+
 function mapBooking(row) {
   return {
     id: row.id,
@@ -46,7 +65,7 @@ function mapBooking(row) {
     selectedSeats: row.selected_seats ? row.selected_seats.split(',') : [],
     totalPrice: Number(row.total_price),
     posterUrl: row.poster_url || '',
-    castList: row.cast_list_json ? JSON.parse(row.cast_list_json) : [],
+    castList: parseJsonList(row.cast_list_json),
     reviewed: Boolean(row.reviewed),
     createdAt: row.created_at
   };
