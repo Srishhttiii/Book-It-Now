@@ -10,10 +10,11 @@ class BrowseByGenre extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+
         Padding(
           padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
           child: Text(
-            "Browse by Genre 🔍",
+            "Browse by Genre",
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -23,6 +24,7 @@ class BrowseByGenre extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 20),
+
         Container(
           height: 60,
           margin: const EdgeInsets.symmetric(horizontal: 10),

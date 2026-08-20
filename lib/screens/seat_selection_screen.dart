@@ -4,8 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../components/seatselections/seat_preview_modal.dart';
 import '../models/constants.dart';
-import '../services/booking_service.dart';
-import 'ticket_generate.dart';
+import 'payment_summary_screen.dart';
 
 const int _priceClassic = 200;
 const int _pricePrime = 350;
@@ -61,7 +60,6 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   Set<SeatNumber> selectedSeats = {};
   int _nextRowLabelIndex = 0;
   int _totalPrice = 0;
-  bool _isProcessing = false;
 
   String _getRowLabel(int index) {
     return String.fromCharCode(65 + index);
@@ -129,63 +127,24 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   Future<void> _handleBooking() async {
     if (selectedSeats.isEmpty) return;
 
-    setState(() {
-      _isProcessing = true;
-    });
-
     final seatStrings =
         selectedSeats.map((seat) => seat.toSeatString(_getRowLabel)).toList();
 
-    try {
-      bool success = await BookingService.createBooking(
-        movieId: widget.movieId,
-        movieTitle: widget.movieTitle,
-        bookingDetails: widget.bookingDetailsTitle,
-        selectedSeats: seatStrings,
-        totalPrice: _totalPrice,
-      );
-
-      if (!mounted) return;
-
-      if (success) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => TicketPage(
-              movieId: widget.movieId,
-              movieTitle: widget.movieTitle,
-              cinemaName: widget.cinemaName,
-              cinemaLocation: widget.cinemaLocation,
-              showTime: widget.dateTime,
-              selectedSeats: seatStrings,
-              totalPrice: _totalPrice,
-              castList: widget.castList,
-            ),
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Booking failed. Please try again.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString()),
-          backgroundColor: Colors.red,
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PaymentSummaryScreen(
+          movieId: widget.movieId,
+          movieTitle: widget.movieTitle,
+          cinemaName: widget.cinemaName,
+          cinemaLocation: widget.cinemaLocation,
+          showTime: widget.dateTime,
+          selectedSeats: seatStrings,
+          totalPrice: _totalPrice,
+          castList: widget.castList,
         ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isProcessing = false;
-        });
-      }
-    }
+      ),
+    );
   }
 
   @override
@@ -494,7 +453,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                     ],
                   ),
                   ElevatedButton(
-                    onPressed: _isProcessing ? null : _handleBooking,
+                    onPressed: _handleBooking,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color.fromARGB(255, 120, 10, 10),
                       padding: const EdgeInsets.symmetric(
@@ -502,23 +461,14 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10)),
                     ),
-                    child: _isProcessing
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 3,
-                            ),
-                          )
-                        : Text(
-                            "Pay ₹$_totalPrice",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 20,
-                                fontFamily: secondaryFonts),
-                          ),
+                    child: Text(
+                      "Proceed",
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                          fontFamily: secondaryFonts),
+                    ),
                   ),
                 ],
               ),

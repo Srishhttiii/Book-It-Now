@@ -32,7 +32,7 @@ class _UpcomingMoviesState extends State<UpcomingMovies> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Upcoming Movies 🎞️",
+              "Upcoming Movies",
               style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,

@@ -1,6 +1,5 @@
 import 'package:bookmyshowclone/models/constants.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import '../../api_services/tmdb_api.dart';
 import '../../components/common/movie_poster_image.dart';
@@ -30,7 +29,7 @@ class _NewReleasesState extends State<NewReleases> {
 
     return SizedBox(
       width: widthSize,
-      height: 350,
+      height: 320,
       child: Padding(
         padding: const EdgeInsets.only(top: 20, left: 10, right: 10),
         child: Column(
@@ -38,7 +37,7 @@ class _NewReleasesState extends State<NewReleases> {
           children: [
             Row(
               children: [
-                Text("New Releases ✨",
+                Text("New Releases",
                     style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -63,7 +62,7 @@ class _NewReleasesState extends State<NewReleases> {
                 ),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 16),
             Expanded(
               child: FutureBuilder<List<Movie>>(
                 future: futureMovies,
@@ -84,70 +83,53 @@ class _NewReleasesState extends State<NewReleases> {
                   final movies = snapshot.data!;
                   return ListView.builder(
                     scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.only(bottom: 20),
                     itemCount: movies.length,
                     itemBuilder: (_, index) {
                       final movie = movies[index];
                       return Padding(
-                        padding: const EdgeInsets.only(right: 10.0),
-                        child: SizedBox(
-                          width: 150,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => MovieDetailScreen(
-                                        movieId: movie.id,
-                                        movieTitle: movie.title,
-                                      ),
+                        padding: const EdgeInsets.only(right: 10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => MovieDetailScreen(
+                                      movieId: movie.id,
+                                      movieTitle: movie.title,
                                     ),
-                                  );
-                                },
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: MoviePosterImage(
-                                    url: movie.posterPath,
-                                    height: 180,
-                                    width: 150,
                                   ),
+                                );
+                              },
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: MoviePosterImage(
+                                  url: movie.posterPath,
+                                  height: 170,
+                                  width: 120,
                                 ),
                               ),
-                              const SizedBox(height: 5),
-                              Text(
+                            ),
+                            const SizedBox(height: 5),
+                            SizedBox(
+                              width: 120,
+                              child: Text(
                                 movie.title,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
                                 style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold,
                                     fontFamily: secondaryFonts,
                                     color: Colors.white),
+                                softWrap: true,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              const SizedBox(height: 3),
-                              Row(
-                                children: [
-                                  RatingBarIndicator(
-                                    rating: movie.rating / 2,
-                                    itemBuilder: (_, __) => const Icon(
-                                        Icons.star,
-                                        color: Colors.amber),
-                                    itemSize: 15,
-                                  ),
-                                  const SizedBox(width: 5),
-                                  Text(
-                                    movie.rating.toStringAsFixed(1),
-                                    style: const TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.white),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       );
                     },

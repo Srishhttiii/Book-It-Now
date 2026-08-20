@@ -108,15 +108,15 @@ class _SigninPageState extends State<SigninPage> {
         child: SingleChildScrollView(
           child: Padding(
             padding:
-                const EdgeInsets.symmetric(horizontal: 30.0, vertical: 40.0),
+                const EdgeInsets.symmetric(horizontal: 30.0, vertical: 90.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const Icon(Icons.theaters, size: 80, color: kPrimaryColorColor),
-                const SizedBox(height: 20),
+                const SizedBox(height: 30),
                 Text(
-                  'BOOK IT NOW!',
+                  'BOOK IT NOW',
                   style: TextStyle(
                       color: kAccentColor,
                       fontSize: 32,
@@ -125,7 +125,7 @@ class _SigninPageState extends State<SigninPage> {
                 ),
                 const SizedBox(height: 10),
                 const Text(
-                  'Sign in to continue your movie journey',
+                  'Start your movie journey with us!',
                   style: TextStyle(
                     color: kGreyColor,
                     fontSize: 16,

@@ -21,8 +21,6 @@ class HomePageScreen extends StatefulWidget {
 }
 
 class _HomePageScreenState extends State<HomePageScreen> {
-  String _selectedLocation = 'Delhi';
-
   @override
   void initState() {
     super.initState();
@@ -32,19 +30,6 @@ class _HomePageScreenState extends State<HomePageScreen> {
         statusBarIconBrightness: Brightness.light,
       ),
     );
-  }
-
-  Future<void> _selectLocation() async {
-    final newLocation = await showDialog<String>(
-      context: context,
-      builder: (context) => LocationDialog(currentLocation: _selectedLocation),
-    );
-
-    if (newLocation != null && newLocation != _selectedLocation) {
-      setState(() {
-        _selectedLocation = newLocation;
-      });
-    }
   }
 
   @override
@@ -68,41 +53,19 @@ class _HomePageScreenState extends State<HomePageScreen> {
         elevation: 0,
         title: Row(
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Movies, Just for You",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontFamily: primaryFont,
-                    fontSize: textContent,
-                  ),
+            const Expanded(
+              child: Text(
+                "Lights, Camera, Book It",
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontFamily: 'cursive',
+                  fontSize: 23,
+                  fontWeight: FontWeight.w500,
                 ),
-                GestureDetector(
-                  onTap: _selectLocation,
-                  child: Row(
-                    children: [
-                      Text(
-                        _selectedLocation,
-                        style: TextStyle(
-                          color: const Color.fromARGB(255, 252, 235, 235),
-                          fontFamily: secondaryFonts,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const Icon(
-                        Icons.arrow_drop_down,
-                        size: 18,
-                        color: Color.fromARGB(255, 252, 235, 235),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+              ),
             ),
-            const Spacer(),
             Icon(Iconsax.search_normal, color: kPrimaryColor),
             const SizedBox(width: 12),
             Icon(Iconsax.scan_barcode, color: kPrimaryColor),
@@ -122,45 +85,6 @@ class _HomePageScreenState extends State<HomePageScreen> {
             UpcomingMovies(),
             SizedBox(height: 8),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class LocationDialog extends StatelessWidget {
-  final String currentLocation;
-  const LocationDialog({super.key, required this.currentLocation});
-
-  @override
-  Widget build(BuildContext context) {
-    final locations = ['Mumbai', 'Delhi', 'Chennai', 'Kolkata'];
-
-    return AlertDialog(
-      backgroundColor: const Color(0xFF1E1E1E),
-      title: const Text(
-        'Select Location',
-        style: TextStyle(color: Colors.white),
-      ),
-      content: SizedBox(
-        width: double.maxFinite,
-        child: ListView.builder(
-          shrinkWrap: true,
-          itemCount: locations.length,
-          itemBuilder: (context, index) {
-            final loc = locations[index];
-            return ListTile(
-              title: Text(
-                loc,
-                style: const TextStyle(color: Colors.white70),
-              ),
-              trailing: loc == currentLocation
-                  ? const Icon(Icons.check,
-                      color: Color.fromARGB(255, 255, 255, 255))
-                  : null,
-              onTap: () => Navigator.pop(context, loc),
-            );
-          },
         ),
       ),
     );

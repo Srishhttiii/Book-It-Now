@@ -120,7 +120,7 @@ class MovieDetailScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.4),
+                            color: Colors.black.withValues(alpha: 0.4),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -135,46 +135,58 @@ class MovieDetailScreen extends StatelessWidget {
                     ),
                     Padding(
                       padding: const EdgeInsets.only(
-                          left: 15.0, right: 15.0, top: 20, bottom: 5),
-                      child: Text(
-                        movie.title,
-                        style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                          left: 15.0, right: 15.0, top: 20, bottom: 10),
                       child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.star, color: Colors.amber),
-                          const SizedBox(width: 5),
-                          Text(
-                            "${movie.rating.toStringAsFixed(1)} / 10 (${movie.voteCount} votes)",
-                            style: const TextStyle(
-                                fontSize: 14, color: Colors.white),
+                          Expanded(
+                            child: Text(
+                              movie.title,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.72),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.star,
+                                    color: Colors.yellow, size: 16),
+                                const SizedBox(width: 4),
+                                Text(
+                                  movie.rating.toStringAsFixed(1),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    Padding(
-                      padding: const EdgeInsets.only(
-                          left: 20.0, right: 20.0, top: 12),
-                      child: Text(
-                        movie.overview,
-                        textAlign: TextAlign.justify,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.white,
-                          height: 1.5,
-                        ),
-                      ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 15),
+                      child: Divider(color: Colors.white24, thickness: 1),
+                    ),
+                    _ExpandableInfoBox(
+                      title: "About",
+                      content: movie.overview,
                     ),
                     const Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 12.0, vertical: 30),
+                      padding: EdgeInsets.fromLTRB(12.0, 6, 12.0, 14),
                       child: Text(
                         "Cast",
                         style: TextStyle(
@@ -259,33 +271,9 @@ class MovieDetailScreen extends StatelessWidget {
                         itemCount: movie.reviews.length,
                         itemBuilder: (_, index) {
                           final review = movie.reviews[index];
-                          return Card(
-                            color: const Color.fromARGB(255, 0, 0, 0),
-                            shadowColor:
-                                const Color.fromARGB(255, 247, 245, 245),
-                            margin: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(12.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    review.author,
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white),
-                                  ),
-                                  const SizedBox(height: 5),
-                                  Text(
-                                    review.content,
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                ],
-                              ),
-                            ),
+                          return _ExpandableCommentCard(
+                            username: review.author,
+                            comment: review.content,
                           );
                         },
                       ),
@@ -344,19 +332,95 @@ class MovieDetailScreen extends StatelessWidget {
   }
 }
 
-class _ExpandableCommentCard extends StatelessWidget {
+class _ExpandableInfoBox extends StatefulWidget {
+  final String title;
+  final String content;
+
+  const _ExpandableInfoBox({
+    required this.title,
+    required this.content,
+  });
+
+  @override
+  State<_ExpandableInfoBox> createState() => _ExpandableInfoBoxState();
+}
+
+class _ExpandableInfoBoxState extends State<_ExpandableInfoBox> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final content = widget.content.isNotEmpty
+        ? widget.content
+        : 'No description available.';
+    final canExpand = content.length > 150;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(15, 10, 15, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            widget.title,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            content,
+            maxLines: _expanded ? null : 3,
+            overflow: _expanded ? TextOverflow.visible : TextOverflow.ellipsis,
+            textAlign: TextAlign.justify,
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 15,
+              height: 1.45,
+            ),
+          ),
+          if (canExpand)
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () => setState(() => _expanded = !_expanded),
+                child: Text(
+                  _expanded ? 'Less' : 'More',
+                  style: TextStyle(
+                    color: kPrimaryColor,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ExpandableCommentCard extends StatefulWidget {
   final String username;
   final String comment;
 
   const _ExpandableCommentCard({
-    // ignore: unused_element_parameter
-    super.key,
     required this.username,
     required this.comment,
   });
 
   @override
+  State<_ExpandableCommentCard> createState() => _ExpandableCommentCardState();
+}
+
+class _ExpandableCommentCardState extends State<_ExpandableCommentCard> {
+  bool _expanded = false;
+
+  @override
   Widget build(BuildContext context) {
+    final comment = widget.comment.isNotEmpty ? widget.comment : '(No comment)';
+    final canExpand = comment.length > 150;
+
     return Card(
       color: const Color.fromARGB(255, 0, 0, 0),
       shadowColor: const Color.fromARGB(255, 255, 255, 255),
@@ -367,7 +431,7 @@ class _ExpandableCommentCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              username,
+              widget.username,
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -375,9 +439,29 @@ class _ExpandableCommentCard extends StatelessWidget {
             ),
             const SizedBox(height: 5),
             Text(
-              comment.isNotEmpty ? comment : "(No comment)",
-              style: const TextStyle(color: Colors.white),
+              comment,
+              maxLines: _expanded ? null : 3,
+              overflow:
+                  _expanded ? TextOverflow.visible : TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Colors.white70,
+                height: 1.35,
+              ),
             ),
+            if (canExpand)
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => setState(() => _expanded = !_expanded),
+                  child: Text(
+                    _expanded ? 'Less' : 'More',
+                    style: TextStyle(
+                      color: kPrimaryColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),

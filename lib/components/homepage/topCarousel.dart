@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_carousel_widget/flutter_carousel_widget.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import '../../api_services/tmdb_api.dart';
+import '../../components/common/movie_poster_image.dart';
+import '../../screens/movie_detail_screen.dart';
 
 class TopCarouselSection extends StatefulWidget {
   const TopCarouselSection({super.key});
@@ -48,7 +50,7 @@ class _TopCarouselSectionState extends State<TopCarouselSection> {
         Padding(
           padding: const EdgeInsets.only(top: 20, left: 10, right: 10),
           child: Text(
-            "Trending This Month 🔥",
+            "Trending",
             style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -58,7 +60,7 @@ class _TopCarouselSectionState extends State<TopCarouselSection> {
         ),
         if (isLoading)
           SizedBox(
-            height: 220,
+            height: 190,
             child: Center(
               child: LoadingAnimationWidget.waveDots(
                 color: const Color.fromARGB(158, 255, 255, 255),
@@ -68,67 +70,120 @@ class _TopCarouselSectionState extends State<TopCarouselSection> {
           )
         else if (trendingMovies.isEmpty)
           const SizedBox(
-            height: 220,
-            child: Center(child: Text("No trending movies found.")),
+            height: 190,
+            child: Center(
+              child: Text(
+                "No trending movies found.",
+                style: TextStyle(color: Colors.white54),
+              ),
+            ),
           )
         else
           Padding(
-            padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
+            padding: const EdgeInsets.only(top: 10),
             child: FlutterCarousel(
               items: trendingMovies.map((movie) {
-                final posterUrl = movie.posterPath.isNotEmpty
-                    ? movie.posterPath
-                    : 'https://via.placeholder.com/500x750?text=No+Image';
+                final imageUrl = movie.backdropPath.isNotEmpty
+                    ? movie.backdropPath
+                    : movie.posterPath;
 
                 return Padding(
-                  padding: const EdgeInsets.all(6.0),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Stack(
-                      children: [
-                        AspectRatio(
-                          aspectRatio: 2 / 3,
-                          child: Image.network(
-                            posterUrl,
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                          ),
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: GestureDetector(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => MovieDetailScreen(
+                          movieId: movie.id,
+                          movieTitle: movie.title,
                         ),
-                        Positioned(
-                          bottom: 8,
-                          right: 8,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
+                      ),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          MoviePosterImage(
+                            url: imageUrl,
+                            width: double.infinity,
+                            height: 180,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          DecoratedBox(
                             decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.7),
-                              borderRadius: BorderRadius.circular(6),
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.black.withValues(alpha: 0.78),
+                                ],
+                              ),
                             ),
+                          ),
+                          Positioned(
+                            left: 14,
+                            right: 14,
+                            bottom: 14,
                             child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                const Icon(Icons.star,
-                                    color: Colors.yellow, size: 16),
-                                const SizedBox(width: 4),
-                                Text(
-                                  movie.rating.toStringAsFixed(1),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
+                                Expanded(
+                                  child: Text(
+                                    movie.title,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontFamily: secondaryFonts,
+                                      fontSize: 19,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 5,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.72),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        Icons.star,
+                                        color: Colors.yellow,
+                                        size: 16,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        movie.rating.toStringAsFixed(1),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 );
               }).toList(),
               options: FlutterCarouselOptions(
-                height: 220,
+                height: 180,
                 enableInfiniteScroll: true,
-                viewportFraction: 0.45,
+                viewportFraction: 0.88,
                 autoPlay: true,
                 showIndicator: false,
               ),
