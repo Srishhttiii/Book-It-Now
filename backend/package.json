@@ -1,0 +1,17 @@
+{
+  "name": "book-it-now-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Backend API for the Book It Now Flutter app using MySQL.",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mysql2": "^3.11.5"
+  }
+}
