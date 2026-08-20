@@ -508,7 +508,7 @@ app.post('/reviews', async (req, res, next) => {
          comments = VALUES(comments),
          updated_at = CURRENT_TIMESTAMP`,
       {
-        userId,
+        userId: user.id,
         bookingDbId,
         movieId,
         movieTitle,
