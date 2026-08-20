@@ -50,6 +50,7 @@ class SelectLocationScreen extends StatelessWidget {
 
   Future<List<Map<String, String>>> fetchCinemas(
       double lat, double lng, String cityName) async {
+    final fallbackCinemas = _fallbackCinemasFor(cityName);
     final query = '''
       [out:json][timeout:25];
       (
@@ -62,41 +63,81 @@ class SelectLocationScreen extends StatelessWidget {
 
     final url = Uri.parse(
         'https://overpass-api.de/api/interpreter?data=${Uri.encodeComponent(query)}');
-    final response = await http.get(url);
 
-    if (response.statusCode != 200) return [];
+    try {
+      final response = await http.get(url);
 
-    final data = json.decode(response.body);
-    final elements = data['elements'] as List<dynamic>;
+      if (response.statusCode != 200) return fallbackCinemas;
 
-    final cinemas = elements
-        .where((e) => e['tags'] != null && e['tags']['name'] != null)
-        .map<Map<String, String>>((e) {
-          final tags = e['tags'] as Map<String, dynamic>;
+      final data = json.decode(response.body);
+      final elements = data['elements'] as List<dynamic>;
 
-          // Collect all possible address parts
-          List<String> parts = [];
-          if (tags['addr:street'] != null)
-            parts.add(tags['addr:street'].toString());
-          if (tags['addr:suburb'] != null)
-            parts.add(tags['addr:suburb'].toString());
-          if (tags['addr:district'] != null)
-            parts.add(tags['addr:district'].toString());
-          if (tags['addr:city'] != null)
-            parts.add(tags['addr:city'].toString());
+      final cinemas = elements
+          .where((e) => e['tags'] != null && e['tags']['name'] != null)
+          .map<Map<String, String>>((e) {
+            final tags = e['tags'] as Map<String, dynamic>;
 
-          final location = parts.join(", ");
+            final parts = <String>[];
+            if (tags['addr:street'] != null) {
+              parts.add(tags['addr:street'].toString());
+            }
+            if (tags['addr:suburb'] != null) {
+              parts.add(tags['addr:suburb'].toString());
+            }
+            if (tags['addr:district'] != null) {
+              parts.add(tags['addr:district'].toString());
+            }
+            if (tags['addr:city'] != null) {
+              parts.add(tags['addr:city'].toString());
+            }
 
-          return {
-            'name': tags['name'].toString(),
-            'location': location,
-          };
-        })
-        // Only keep cinemas with at least one location field
-        .where((c) => c['location'] != null && c['location']!.isNotEmpty)
-        .toList();
+            final location = parts.isEmpty ? cityName : parts.join(', ');
 
-    return cinemas;
+            return {
+              'name': tags['name'].toString(),
+              'location': location,
+            };
+          })
+          .toList();
+
+      return cinemas.isEmpty ? fallbackCinemas : cinemas;
+    } catch (_) {
+      return fallbackCinemas;
+    }
+  }
+
+  List<Map<String, String>> _fallbackCinemasFor(String cityName) {
+    const fallbackByCity = {
+      'Delhi': [
+        {'name': 'PVR Select Citywalk', 'location': 'Saket, Delhi'},
+        {'name': 'INOX Nehru Place', 'location': 'Nehru Place, Delhi'},
+        {'name': 'Cinepolis DLF Avenue', 'location': 'Saket, Delhi'},
+      ],
+      'Mumbai': [
+        {'name': 'PVR ICON Phoenix Palladium', 'location': 'Lower Parel, Mumbai'},
+        {'name': 'INOX R-City', 'location': 'Ghatkopar, Mumbai'},
+        {'name': 'Metro INOX Cinema', 'location': 'Marine Lines, Mumbai'},
+      ],
+      'Chennai': [
+        {'name': 'PVR Palazzo', 'location': 'Vadapalani, Chennai'},
+        {'name': 'INOX Chennai Citi Centre', 'location': 'Mylapore, Chennai'},
+        {'name': 'Sathyam Cinemas', 'location': 'Royapettah, Chennai'},
+      ],
+      'Kolkata': [
+        {'name': 'INOX South City', 'location': 'Jadavpur, Kolkata'},
+        {'name': 'PVR Mani Square', 'location': 'Kankurgachi, Kolkata'},
+        {'name': 'Cinepolis Acropolis Mall', 'location': 'Kasba, Kolkata'},
+      ],
+    };
+
+    return List<Map<String, String>>.from(
+      fallbackByCity[cityName] ??
+          [
+            {'name': 'PVR Cinemas', 'location': cityName},
+            {'name': 'INOX Cinemas', 'location': cityName},
+            {'name': 'Cinepolis', 'location': cityName},
+          ],
+    );
   }
 
   @override
