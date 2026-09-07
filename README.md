@@ -1,26 +1,26 @@
 # Book It Now
 
-Book It Now is a full-stack movie-ticket booking application built with Flutter. It combines movie discovery, cinema and show-time selection, interactive seat selection, booking management, authenticated reviews, and a reward-points wallet in one mobile-first experience.
+Book It Now is a full-stack movie-ticket booking application built with Flutter. It combines movie discovery, cinema and show-time selection, interactive seat selection, booking management, authenticated reviews and a reward-points wallet in one mobile-first experience.
 
 ## Highlights
 
-- Browse trending, new-release, upcoming, and genre-based movie collections powered by TMDB.
-- Open detailed movie pages with cast, ratings, synopsis, and audience reviews.
+- Browse trending, new-release, upcoming and genre-based movie collections powered by TMDB.
+- Open detailed movie pages with cast, ratings, synopsis and audience reviews.
 - Select a cinema and show time, then choose seats from a 2D seat-layout preview.
 - Review a booking summary before payment and receive a QR-enabled digital ticket after a successful booking.
-- View booking history, ticket details, selected seats, and QR codes in My Bookings.
+- View booking history, ticket details, selected seats and QR codes in My Bookings.
 - Submit a review only after the show has started, helping ensure reviews are based on real ticket holders.
 - Reopen an existing review with Edit Review and update it later without receiving reward credits twice.
 - Earn 100 credits for a first authentic review, then redeem credits into wallet balance.
-- Use Firebase Authentication for account access while keeping bookings, reviews, seats, wallet balances, and credits in MySQL.
+- Use Firebase Authentication for account access while keeping bookings, reviews, seats, wallet balances and credits in MySQL.
 
 ## User Workflow
 
 1. Sign up or sign in with Firebase Authentication.
-2. Discover a movie from the carousel, genre collections, new releases, or upcoming movies.
-3. Open the movie details page and select a cinema, show time, and available seats.
-4. Preview selected seats, review the booking summary, and confirm payment.
-5. Receive an animated ticket with a QR code, booking details, and quick access to My Bookings or Home.
+2. Discover a movie from the carousel, genre collections, new releases or upcoming movies.
+3. Open the movie details page and select a cinema, show time and available seats.
+4. Preview selected seats, review the booking summary and confirm payment.
+5. Receive an animated ticket with a QR code, booking details and quick access to My Bookings or Home.
 6. After the show begins, submit an authentic review to earn credits once.
 7. Edit the same review whenever needed; the existing record is updated and no duplicate credits are added.
 
@@ -50,7 +50,7 @@ Flutter app
             |-- TMDB API for movie metadata, posters, cast, and ratings
 ```
 
-The Flutter app never connects directly to MySQL. The Express backend owns database access and transactions, keeping credentials on the server and allowing bookings, seat records, wallet updates, and review rewards to be handled consistently.
+The Flutter app never connects directly to MySQL. The Express backend owns database access and transactions, keeping credentials on the server and allowing bookings, seat records, wallet updates and review rewards to be handled consistently.
 
 ## Review and Credits Rules
 
