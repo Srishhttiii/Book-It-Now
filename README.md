@@ -108,6 +108,3 @@ flutter run --dart-define=API_BASE_URL=http://YOUR_LAPTOP_IP:3000
 - `POST /reviews` creates or updates an authenticated review and awards credits only for a first submission.
 - `POST /users/:firebaseUid/credits/convert` converts reward credits into wallet balance.
 
-## Repository
-
-[View the project on GitHub](https://github.com/Srishhttiii/Book-It-Now)
