@@ -274,7 +274,7 @@ class BookingDetailsSheet extends StatelessWidget {
                   final hasShowStarted =
                       showTime != null && now.isAfter(showTime);
                   final isReviewed = booking['reviewed'] == true;
-                  final isButtonEnabled = hasShowStarted && !isReviewed;
+                  final isButtonEnabled = hasShowStarted;
 
                   return ElevatedButton(
                     style: ButtonStyle(
@@ -313,7 +313,7 @@ class BookingDetailsSheet extends StatelessWidget {
                         : null,
                     child: Text(
                       isReviewed
-                          ? "Reviewed"
+                          ? "Edit Review"
                           : isButtonEnabled
                               ? "Review"
                               : "Review (Available after Show)",

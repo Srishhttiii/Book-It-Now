@@ -165,7 +165,7 @@ class _PaymentSummaryScreenState extends State<PaymentSummaryScreen> {
                   width: 155,
                   borderRadius: BorderRadius.circular(14),
                   fallbackColor: const Color.fromARGB(255, 28, 28, 28),
-                  iconColor: const Color.fromARGB(255, 140, 0, 0),
+                  iconColor: const Color.fromARGB(255, 255, 255, 255),
                 ),
               ),
               const SizedBox(height: 16),

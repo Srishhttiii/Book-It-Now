@@ -119,12 +119,11 @@ class _TicketPageState extends State<TicketPage>
                     child: Row(
                       children: [
                         Expanded(
-                          child: OutlinedButton(
-                            style: OutlinedButton.styleFrom(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  const Color.fromARGB(255, 125, 0, 0),
                               foregroundColor: Colors.white,
-                              side: const BorderSide(
-                                color: Color.fromARGB(255, 150, 32, 32),
-                              ),
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(14),

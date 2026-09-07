@@ -119,7 +119,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                   const SizedBox(height: 10),
                   const Text(
-                    'Start your movie journey with us',
+                    'Start your movie journey with us!',
                     style: TextStyle(color: kGreyColor, fontSize: 16),
                     textAlign: TextAlign.center,
                   ),

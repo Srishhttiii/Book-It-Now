@@ -370,7 +370,7 @@ class _ReviewPageState extends State<ReviewPage> {
   Widget _buildDropdown(String label, String current, List<String> options,
       ValueChanged<String> onChanged) {
     return Opacity(
-      opacity: _fieldsDisabled ? 0.45 : 1.0,
+      opacity: _fieldsDisabled ? 0.58 : 1.0,
       child: IgnorePointer(
         ignoring: _fieldsDisabled,
         child: Column(
@@ -415,7 +415,8 @@ class _ReviewPageState extends State<ReviewPage> {
                 padding:
                     const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
                 decoration: BoxDecoration(
-                  color: Colors.grey[850],
+                  color: Colors.transparent,
+                  border: Border.all(color: Colors.white24),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -436,7 +437,7 @@ class _ReviewPageState extends State<ReviewPage> {
   }
 
   Widget _buildCharacterSelector() => Opacity(
-        opacity: _fieldsDisabled ? 0.45 : 1.0,
+        opacity: _fieldsDisabled ? 0.58 : 1.0,
         child: IgnorePointer(
           ignoring: _fieldsDisabled,
           child: Column(
@@ -455,13 +456,21 @@ class _ReviewPageState extends State<ReviewPage> {
                     final c = castList[i];
                     final selected = _favoriteCharacter == c;
                     return ChoiceChip(
-                      label: Text(c,
-                          style: TextStyle(
-                              color: selected ? Colors.white : Colors.white70)),
+                      label: Text(
+                        c,
+                        style: const TextStyle(color: Colors.black),
+                      ),
                       selected: selected,
                       onSelected: (_) => setState(() => _favoriteCharacter = c),
-                      selectedColor: Colors.grey[800],
-                      backgroundColor: Colors.grey[700],
+                      selectedColor: Colors.white,
+                      backgroundColor: Colors.white,
+                      showCheckmark: true,
+                      checkmarkColor: Colors.black,
+                      side: BorderSide(
+                        color: selected
+                            ? const Color.fromARGB(255, 125, 0, 0)
+                            : Colors.white,
+                      ),
                     );
                   },
                 ),
@@ -473,7 +482,7 @@ class _ReviewPageState extends State<ReviewPage> {
 
   Widget _buildTextField(String label, TextEditingController controller) =>
       Opacity(
-        opacity: _fieldsDisabled ? 0.45 : 1.0,
+        opacity: _fieldsDisabled ? 0.58 : 1.0,
         child: IgnorePointer(
           ignoring: _fieldsDisabled,
           child: Column(
@@ -491,12 +500,20 @@ class _ReviewPageState extends State<ReviewPage> {
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: Colors.white.withOpacity(0.1),
+                  fillColor: Colors.transparent,
                   hintText: "Type your thoughts...",
                   hintStyle: const TextStyle(color: Colors.white60),
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide: BorderSide.none),
+                      borderSide: const BorderSide(color: Colors.white24)),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: const BorderSide(color: Colors.white24),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: const BorderSide(color: Colors.white24),
+                  ),
                 ),
               ),
             ],
@@ -505,7 +522,7 @@ class _ReviewPageState extends State<ReviewPage> {
       );
 
   Widget _buildStarRating() => Opacity(
-        opacity: _fieldsDisabled ? 0.45 : 1.0,
+        opacity: _fieldsDisabled ? 0.58 : 1.0,
         child: IgnorePointer(
           ignoring: _fieldsDisabled,
           child: Row(
